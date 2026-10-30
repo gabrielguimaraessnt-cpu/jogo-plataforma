@@ -67,6 +67,7 @@ html, body {
   box-shadow: 0 14px 40px rgba(74, 35, 64, .35);
 }
 .painel-menu { background: rgba(255, 248, 244, .88); }
+.painel .coluna, .painel .colunas, .painel .botoes { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .painel-largo { width: min(900px, 100%); }
 .painel-roupas { width: min(560px, 100%); margin-bottom: 2vh; padding: 14px 18px; }
 h1 { margin: 0; font-size: 92px; line-height: .85; color: var(--destaque); text-shadow: 0 5px 0 #fff, 0 7px 0 var(--borda); }
@@ -185,11 +186,52 @@ body.tela-baixa .acoes { transform: scale(.82); transform-origin: bottom right; 
 .jogador-atual { margin: -4px 0 4px; font-size: 16px; }
 button.link { background: none; border: none; padding: 0 4px; font-size: 16px; color: var(--destaque); text-decoration: underline; }
 
-/* Tela baixa (celular na horizontal): menus mais compactos */
-body.tela-baixa .painel { padding: 10px 16px; gap: 5px; max-height: calc(100% - 8px); }
-body.tela-baixa h1 { font-size: 46px; }
+/* Tela baixa (celular deitado): painéis em colunas, tudo cabendo sem rolar */
+body.tela-baixa .tela { padding: 6px max(12px, env(safe-area-inset-left, 0px)); }
+body.tela-baixa .painel { padding: 10px 16px; gap: 6px; max-height: 100%; border-width: 2px; border-radius: 16px; }
+body.tela-baixa h1 { font-size: 52px; }
 body.tela-baixa h1 small { font-size: 16px; }
-body.tela-baixa h2 { font-size: 22px; }
-body.tela-baixa button { font-size: 15px; padding: 4px 12px; }
-body.tela-baixa .contagem, body.tela-baixa .faixa, body.tela-baixa .jogador-atual { font-size: 14px; margin: 0; padding: 2px 8px; }
-body.tela-baixa .tela { padding: 4px 12px; }
+body.tela-baixa .pinheirinho { font-size: 30px; }
+body.tela-baixa h2 { font-size: 22px; margin: 0; }
+body.tela-baixa button, body.tela-baixa select { font-size: 15px; padding: 5px 12px; border-width: 2px; border-radius: 12px; }
+body.tela-baixa .dica, body.tela-baixa .lista-dicas { font-size: 13px; line-height: 1.35; margin: 0; }
+body.tela-baixa .contagem, body.tela-baixa .jogador-atual, body.tela-baixa .faixa { font-size: 14px; margin: 0; }
+body.tela-baixa .faixa { padding: 3px 8px; }
+body.tela-baixa .painel .coluna, body.tela-baixa .painel .colunas, body.tela-baixa .painel .botoes { gap: 6px; }
+
+/* menu: título à esquerda, botões à direita */
+body.tela-baixa .painel-menu { width: min(640px, 100%); flex-direction: row; align-items: center; gap: 18px; }
+body.tela-baixa .painel-menu .coluna { flex: 1; }
+
+/* mapa: só o nome da fase, sem a descrição */
+body.tela-baixa .painel-largo { width: 100%; }
+body.tela-baixa .mapa { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+body.tela-baixa .mundo { padding: 6px; gap: 4px; border-width: 2px; }
+body.tela-baixa .mundo h3 { font-size: 14px; }
+body.tela-baixa .fase-botao { font-size: 13px; padding: 4px 6px; }
+body.tela-baixa .fase-botao small { display: none; }
+
+/* guarda-roupa: as quatro roupas numa linha só */
+body.tela-baixa .lista-roupas { flex-wrap: nowrap; gap: 6px; }
+body.tela-baixa .roupa { width: auto; flex: 1; font-size: 13px; padding: 4px 6px; }
+body.tela-baixa .roupa .amostra { width: 34px; height: 34px; }
+body.tela-baixa .painel-roupas { width: min(620px, 100%); }
+
+/* controles e fim de fase: duas colunas */
+body.tela-baixa .painel-controles, body.tela-baixa .painel-fim { width: min(720px, 100%); }
+body.tela-baixa .painel .colunas { flex-direction: row; gap: 16px; align-items: flex-start; text-align: left; }
+body.tela-baixa .painel .colunas > * { flex: 1; }
+body.tela-baixa .controles { font-size: 14px; border-spacing: 4px 2px; margin: 0; }
+body.tela-baixa .lista-dicas { padding: 0; }
+body.tela-baixa .resumo { font-size: 15px; }
+body.tela-baixa #form-recorde input { font-size: 15px; padding: 4px 10px; }
+body.tela-baixa .lista-recordes { font-size: 13px; max-height: 96px; overflow-y: auto; }
+body.tela-baixa .painel .botoes { flex-direction: row; }
+body.tela-baixa .painel .botoes > * { flex: 1; }
+
+/* músicas e casamento */
+body.tela-baixa .escolha-musica button { font-size: 14px; }
+body.tela-baixa .botao-arquivo { font-size: 15px; padding: 5px 12px; }
+body.tela-baixa .painel-casamento h1 { font-size: 40px; }
+body.tela-baixa .painel-casamento { margin-bottom: 0; }
+body.tela-baixa #mensagem-final, body.tela-baixa .data-casamento { font-size: 15px; margin: 0; }

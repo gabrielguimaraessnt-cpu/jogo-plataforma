@@ -38,7 +38,7 @@ function redimensionar() {
   document.body.style.setProperty('--larg', innerWidth + 'px');
   document.body.style.setProperty('--alt', innerHeight + 'px');
   const w = girar ? innerHeight : innerWidth, h = girar ? innerWidth : innerHeight;
-  document.body.classList.toggle('tela-baixa', h < 380);
+  document.body.classList.toggle('tela-baixa', h < 520);
   renderizador.setSize(w, h);
   camera.aspect = w / h;
   camera.fov = camera.aspect < 0.8 ? 75 : 60;

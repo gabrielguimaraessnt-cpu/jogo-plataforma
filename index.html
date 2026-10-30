@@ -45,15 +45,19 @@
   <!-- Menu principal -->
   <div id="tela-menu" class="tela">
     <div class="painel painel-menu">
-      <div id="faixa-aniversario" class="faixa oculto"></div>
-      <h1><small>As Aventuras da</small>Bia<span class="pinheirinho">🌲</span></h1>
-      <p id="contagem" class="contagem"></p>
-      <p id="jogador-atual" class="jogador-atual oculto">Jogando como <b id="jogador-nome"></b> <button data-acao="trocar-nome" class="link">trocar</button></p>
-      <button data-acao="mapa" class="principal">Jogar</button>
-      <button data-acao="roupas">Guarda-roupa</button>
-      <button data-acao="musicas">Músicas</button>
-      <button data-acao="recordes">Recordes online</button>
-      <button data-acao="controles">Controles</button>
+      <div class="coluna">
+        <div id="faixa-aniversario" class="faixa oculto"></div>
+        <h1><small>As Aventuras da</small>Bia<span class="pinheirinho">🌲</span></h1>
+        <p id="contagem" class="contagem"></p>
+        <p id="jogador-atual" class="jogador-atual oculto">Jogando como <b id="jogador-nome"></b> <button data-acao="trocar-nome" class="link">trocar</button></p>
+      </div>
+      <div class="coluna">
+        <button data-acao="mapa" class="principal">Jogar</button>
+        <button data-acao="roupas">Guarda-roupa</button>
+        <button data-acao="musicas">Músicas</button>
+        <button data-acao="recordes">Recordes online</button>
+        <button data-acao="controles">Controles</button>
+      </div>
     </div>
   </div>
 
@@ -75,8 +79,9 @@
   </div>
 
   <div id="tela-controles" class="tela oculto">
-    <div class="painel">
+    <div class="painel painel-controles">
       <h2>Controles</h2>
+      <div class="colunas">
       <table class="controles">
         <tr><td>Andar</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou setas</td></tr>
         <tr><td>Pular</td><td><kbd>Espaço</kbd> ou <kbd>Z</kbd></td></tr>
@@ -92,6 +97,7 @@
         <li>🍮 O pudim protege de um golpe. 🌹 100 flores valem uma vida.</li>
         <li>💍 Cada fase esconde uma aliança.</li>
       </ul>
+      </div>
       <p class="dica">Controle de videogame também funciona.</p>
       <button data-acao="voltar">Voltar</button>
     </div>
@@ -133,18 +139,24 @@
   </div>
 
   <div id="tela-fim" class="tela oculto">
-    <div class="painel">
+    <div class="painel painel-fim">
       <h2 id="fim-titulo">Fase concluída!</h2>
+      <div class="colunas">
       <div id="fim-resumo" class="resumo"></div>
+      <div class="coluna">
       <form id="form-recorde">
         <input id="nome-jogador" maxlength="40" placeholder="Nome e sobrenome" autocomplete="nickname" required>
         <button type="submit">Enviar tempo</button>
       </form>
       <div id="fim-status" class="dica"></div>
       <div id="lista-recordes-fim" class="lista-recordes"></div>
-      <button data-acao="proxima" id="botao-proxima" class="principal">Próxima fase</button>
-      <button data-acao="reiniciar">Jogar de novo</button>
-      <button data-acao="mapa">Mapa de fases</button>
+      </div>
+      </div>
+      <div class="botoes">
+        <button data-acao="proxima" id="botao-proxima" class="principal">Próxima fase</button>
+        <button data-acao="reiniciar">Jogar de novo</button>
+        <button data-acao="mapa">Mapa de fases</button>
+      </div>
     </div>
   </div>
 
