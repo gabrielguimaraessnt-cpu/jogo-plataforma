@@ -6,7 +6,7 @@ import { TEMAS } from './temas.js';
 import { ROUPAS } from './modelos/bia.js';
 import { lerEntrada, iniciarToque } from './entrada.js';
 import { som, alternarSom, contexto } from './som.js';
-import { tocarMusica } from './musica.js';
+import { tocarMusica, carregarMinhasMusicas, adicionarMinhasMusicas, apagarMinhasMusicas, escolherModoMusica, proximaMusica, estadoMinhasMusicas, aoMudarMinhasMusicas } from './musica.js';
 import { AJUSTES, HISTORIA } from './config.js';
 import { FASES, MUNDOS } from './fases/index.js';
 import { enviarRecorde, mostrarRecordes, formatarTempo } from './placar.js';
@@ -30,14 +30,33 @@ Object.assign(sol.shadow.camera, { left: -18, right: 18, top: 18, bottom: -18, n
 sol.shadow.bias = -0.0006;
 cena.add(ceu, sol, sol.target);
 
+// No celular o jogo é sempre na horizontal: se o aparelho estiver em pé, a página inteira é girada.
+const ehCelular = matchMedia('(pointer: coarse)').matches;
 function redimensionar() {
-  renderizador.setSize(innerWidth, innerHeight);
-  camera.aspect = innerWidth / innerHeight;
+  const girar = ehCelular && innerHeight > innerWidth;
+  document.body.classList.toggle('girado', girar);
+  document.body.style.setProperty('--larg', innerWidth + 'px');
+  document.body.style.setProperty('--alt', innerHeight + 'px');
+  const w = girar ? innerHeight : innerWidth, h = girar ? innerWidth : innerHeight;
+  document.body.classList.toggle('tela-baixa', h < 380);
+  renderizador.setSize(w, h);
+  camera.aspect = w / h;
   camera.fov = camera.aspect < 0.8 ? 75 : 60;
   camera.updateProjectionMatrix();
 }
 addEventListener('resize', redimensionar);
+addEventListener('orientationchange', () => setTimeout(redimensionar, 200));
 redimensionar();
+
+// No Android dá para travar de verdade: tela cheia + horizontal no primeiro toque.
+if (ehCelular) {
+  addEventListener('pointerdown', async () => {
+    try {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.({ navigationUI: 'hide' });
+      await screen.orientation?.lock?.('landscape');
+    } catch {}
+  }, { once: true });
+}
 
 // ---------- Modelo próprio da Bia (opcional, feito no Blender) ----------
 // assets/modelos/modelos.json lista os .glb que existem. Hoje só "bia" é usado.
@@ -71,7 +90,7 @@ if (new URLSearchParams(location.search).has('tudo')) progresso.liberada = FASES
 // ---------- Estado do jogo ----------
 
 const $ = (id) => document.getElementById(id);
-const telas = ['tela-menu', 'tela-mapa', 'tela-roupas', 'tela-controles', 'tela-recordes', 'tela-pausa', 'tela-fim', 'tela-gameover', 'tela-casamento'];
+const telas = ['tela-nome', 'tela-musicas', 'tela-menu', 'tela-mapa', 'tela-roupas', 'tela-controles', 'tela-recordes', 'tela-pausa', 'tela-fim', 'tela-gameover', 'tela-casamento'];
 function mostrarTela(id) {
   for (const t of telas) $(t).classList.toggle('oculto', t !== id);
   if (id) $(id).querySelector('button.principal, button')?.focus({ preventScroll: true });
@@ -203,6 +222,50 @@ function registrarVitoria() {
   salvar();
 }
 
+// ---------- Nome de quem joga (vai para o placar online) ----------
+
+function nomeSalvo() { try { return localStorage.getItem('bia-nome') ?? ''; } catch { return ''; } }
+
+function nomeValido(nome) {
+  const partes = nome.trim().split(/\s+/).filter((p) => p.length >= 2);
+  return partes.length >= 2;
+}
+
+function mostrarJogadorAtual() {
+  const nome = nomeSalvo();
+  $('jogador-atual').classList.toggle('oculto', !nome);
+  $('jogador-nome').textContent = nome;
+}
+
+function pedirNome() {
+  $('nome-inicial').value = nomeSalvo();
+  $('nome-status').textContent = '';
+  mostrarTela('tela-nome');
+  $('nome-inicial').focus();
+}
+
+$('form-nome').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const nome = $('nome-inicial').value.trim().replace(/\s+/g, ' ');
+  if (!nomeValido(nome)) { $('nome-status').textContent = 'Escreva nome e sobrenome, por exemplo: Beatriz Pinheiro.'; return; }
+  try { localStorage.setItem('bia-nome', nome); } catch {}
+  mostrarJogadorAtual();
+  mostrarTela('tela-menu');
+});
+
+async function enviarTempo(nome) {
+  $('fim-status').textContent = `Enviando o tempo de ${nome}…`;
+  try {
+    const id = await enviarRecorde({ nome, fase: FASES[indiceFase].numero, tempoMs, caixas: mundo.quebradas, frutas: flores });
+    $('fim-status').textContent = `Tempo registrado no placar como ${nome}.`;
+    $('form-recorde').classList.add('oculto');
+    mostrarRecordes($('lista-recordes-fim'), FASES[indiceFase].numero, id);
+  } catch (erro) {
+    $('fim-status').textContent = `Não deu para enviar: ${erro.message}`;
+    $('form-recorde').classList.remove('oculto');
+  }
+}
+
 function mostrarFim() {
   const total = mundo.totalCaixas;
   const fase = FASES[indiceFase];
@@ -214,27 +277,53 @@ function mostrarFim() {
     <span>Aliança</span><b>${pegouAlianca ? '💍 achou!' : '—'}</b>
     <span>Quedas</span><b>${quedas}</b>`;
   $('fim-status').textContent = '';
-  $('form-recorde').classList.remove('oculto');
-  try { $('nome-jogador').value = localStorage.getItem('bia-nome') ?? HISTORIA.heroina; } catch {}
+  $('nome-jogador').value = nomeSalvo();
   $('botao-proxima').classList.toggle('oculto', indiceFase >= FASES.length - 1);
   mostrarTela('tela-fim');
-  mostrarRecordes($('lista-recordes-fim'), fase.numero);
+  // Com o nome já registrado no começo, o tempo vai sozinho para o placar.
+  if (nomeValido(nomeSalvo())) { $('form-recorde').classList.add('oculto'); enviarTempo(nomeSalvo()); }
+  else { $('form-recorde').classList.remove('oculto'); mostrarRecordes($('lista-recordes-fim'), fase.numero); }
 }
 
 $('form-recorde').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const nome = $('nome-jogador').value.trim();
-  if (nome.length < 2) { $('fim-status').textContent = 'O nome precisa ter pelo menos 2 letras.'; return; }
+  const nome = $('nome-jogador').value.trim().replace(/\s+/g, ' ');
+  if (!nomeValido(nome)) { $('fim-status').textContent = 'Escreva nome e sobrenome.'; return; }
   try { localStorage.setItem('bia-nome', nome); } catch {}
-  $('fim-status').textContent = 'Enviando…';
+  mostrarJogadorAtual();
+  enviarTempo(nome);
+});
+
+// ---------- Tela de músicas ----------
+
+function mostrarMusicas(e = estadoMinhasMusicas()) {
+  $('modo-jogo').classList.toggle('escolhida', e.modo !== 'minhas' || !e.quantidade);
+  $('modo-minhas').classList.toggle('escolhida', e.modo === 'minhas' && e.quantidade > 0);
+  $('minhas-resumo').textContent = e.quantidade ? `${e.quantidade} música${e.quantidade > 1 ? 's' : ''} no aparelho` : 'nenhuma música adicionada';
+  $('tocando-agora').textContent = e.tocando ? `Tocando: ${e.tocando}` : '';
+  $('botao-proxima-musica').classList.toggle('oculto', !e.tocando);
+  $('botao-apagar-musicas').classList.toggle('oculto', !e.quantidade);
+}
+aoMudarMinhasMusicas(mostrarMusicas);
+
+$('arquivos-musica').addEventListener('change', async (e) => {
+  const arquivos = [...e.target.files];
+  e.target.value = '';
+  if (!arquivos.length) return;
+  $('tocando-agora').textContent = 'Guardando as músicas…';
   try {
-    const id = await enviarRecorde({ nome, fase: FASES[indiceFase].numero, tempoMs, caixas: mundo.quebradas, frutas: flores });
-    $('fim-status').textContent = 'Tempo enviado!';
-    $('form-recorde').classList.add('oculto');
-    mostrarRecordes($('lista-recordes-fim'), FASES[indiceFase].numero, id);
-  } catch (erro) {
-    $('fim-status').textContent = `Não deu para enviar: ${erro.message}`;
+    await adicionarMinhasMusicas(arquivos);
+    escolherModoMusica('minhas');
+  } catch {
+    $('tocando-agora').textContent = 'Não consegui guardar essas músicas neste aparelho.';
   }
+});
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-modo-musica]');
+  if (!b) return;
+  if (b.dataset.modoMusica === 'minhas' && !estadoMinhasMusicas().quantidade) { $('arquivos-musica').click(); return; }
+  escolherModoMusica(b.dataset.modoMusica);
 });
 
 // ---------- Menus pelo teclado e pelo controle ----------
@@ -284,6 +373,7 @@ $('mapa').addEventListener('click', (e) => {
 });
 
 const AMOSTRAS = { florido: 'radial-gradient(circle at 30% 30%, #e07a3f 12%, transparent 13%), radial-gradient(circle at 70% 60%, #c0392b 10%, transparent 11%), #f4e6d4',
+  jaqueta: 'linear-gradient(135deg, #231a17 0 50%, #3d5a80 50% 100%)',
   verde: '#56722f', azul: 'radial-gradient(circle at 35% 40%, #4a6fa5 18%, transparent 19%), radial-gradient(circle at 70% 70%, #9db4d8 14%, transparent 15%), #eef2fa' };
 function montarRoupas() {
   $('lista-roupas').innerHTML = Object.entries(ROUPAS).map(([chave, r]) =>
@@ -309,6 +399,10 @@ document.addEventListener('click', (e) => {
     case 'mapa': irParaMenu('tela-mapa'); telaAnterior = 'tela-menu'; break;
     case 'roupas': estado = 'roupas'; telaAnterior = 'tela-menu'; montarRoupas(); mostrarTela('tela-roupas'); vitrine(true); break;
     case 'controles': telaAnterior = 'tela-menu'; mostrarTela('tela-controles'); break;
+    case 'musicas': telaAnterior = 'tela-menu'; mostrarMusicas(); mostrarTela('tela-musicas'); break;
+    case 'proxima-musica': proximaMusica(); break;
+    case 'apagar-musicas': apagarMinhasMusicas(); break;
+    case 'trocar-nome': pedirNome(); break;
     case 'recordes': telaAnterior = 'tela-menu'; mostrarTela('tela-recordes'); mostrarRecordes($('lista-recordes-menu'), +$('recordes-fase').value); break;
     case 'voltar': if (estado === 'roupas') estado = 'menu'; mostrarTela(telaAnterior); break;
     case 'continuar': estado = 'jogando'; mostrarTela(null); break;
@@ -430,6 +524,7 @@ function quadro(agora) {
   const entrada = lerEntrada();
 
   if (entrada.som) aviso(alternarSom() ? 'Som ligado' : 'Som desligado', 1);
+  if (entrada.proximaMusica) { proximaMusica(); const e = estadoMinhasMusicas(); if (e.tocando) aviso(e.tocando, 1.5); }
 
   if (estado === 'jogando' && entrada.pausou) { estado = 'pausa'; mostrarTela('tela-pausa'); }
   else if (estado === 'pausa' && entrada.pausou) { estado = 'jogando'; mostrarTela(null); }
@@ -518,9 +613,11 @@ addEventListener('keydown', () => { try { contexto(); } catch {} });
 const temToque = iniciarToque();
 datasEspeciais();
 await carregarExternos();
+await carregarMinhasMusicas();
 montarFase(0);
 estado = 'menu';
-mostrarTela('tela-menu');
+mostrarJogadorAtual();
+if (nomeValido(nomeSalvo())) mostrarTela('tela-menu'); else pedirNome();
 tocarMusica('menu');
 requestAnimationFrame(quadro);
 

@@ -42,12 +42,41 @@ function tecidoVerde() {
   }, { repetir: true, suave: true });
 }
 
+function tecidoCouro() {
+  return textura(64, (g, w, h) => {
+    g.fillStyle = '#231a17'; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(255,255,255,0.06)';
+    for (let i = 0; i < 40; i++) g.fillRect((i * 37) % w, (i * 23) % h, 6, 2);
+    g.fillStyle = '#3a2c26'; g.fillRect(0, h - 4, w, 2);
+  }, { repetir: true, suave: true });
+}
+
+function tecidoJeans() {
+  return textura(64, (g, w, h) => {
+    g.fillStyle = '#3d5a80'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(255,255,255,0.12)'; g.lineWidth = 1;
+    for (let i = -h; i < w; i += 3) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + h, h); g.stroke(); }
+    g.fillStyle = 'rgba(152,193,217,0.25)'; g.fillRect(w * 0.3, 0, w * 0.25, h);
+  }, { repetir: true, suave: true });
+}
+
 // manga: 'flare' (3/4 bufante), 'longa' ou 'curta'. saia: altura da barra.
 export const ROUPAS = {
   florido: { nome: 'Vestido florido', tecido: tecidoFlorido, manga: 'flare', barra: 0.42, cinto: null, repete: [9, 2] },
   verde: { nome: 'Vestido verde longo', tecido: tecidoVerde, manga: 'longa', barra: 0.1, cinto: 0x3f5622, repete: [6, 1] },
   azul: { nome: 'Vestido azul floral', tecido: tecidoAzul, manga: 'curta', barra: 0.3, cinto: null, repete: [6, 2] },
+  jaqueta: { nome: 'Jaqueta de couro e jeans', tecido: tecidoCouro, manga: 'longa', barra: 0.6, cinto: 0x5c4033, repete: [4, 2], calca: tecidoJeans },
 };
+
+let materialJeans;
+function jeans() {
+  if (!materialJeans) {
+    const t = tecidoJeans();
+    t.repeat.set(2, 2);
+    materialJeans = toon(0xffffff, { map: t });
+  }
+  return materialJeans;
+}
 
 const texturasRoupa = {};
 function materialRoupa(chave) {
@@ -83,20 +112,39 @@ export function criarBia(roupaEscolhida = 'florido') {
   for (const lado of [-1, 1]) {
     const pivo = new THREE.Group();
     pivo.position.set(lado * 0.09, 0.6, 0);
-    pivo.add(malha(new THREE.CapsuleGeometry(0.06, 0.44, 4, 10), pele, 0, -0.27, 0));
-    const sapato = malha(new THREE.SphereGeometry(0.07, 12, 8), toon(0xe9b7a1), 0, -0.55, 0.035);
-    sapato.scale.set(0.9, 0.55, 1.4);
-    pivo.add(sapato);
+    if (roupa.calca) {
+      // calça jeans e botinha preta
+      pivo.add(malha(new THREE.CapsuleGeometry(0.068, 0.42, 4, 10), jeans(), 0, -0.25, 0));
+      pivo.add(malha(new THREE.CylinderGeometry(0.07, 0.065, 0.14, 12), toon(0x1b1b1b), 0, -0.49, 0));
+      const bico = malha(new THREE.SphereGeometry(0.07, 12, 8), toon(0x1b1b1b), 0, -0.55, 0.04);
+      bico.scale.set(0.9, 0.55, 1.4);
+      pivo.add(bico);
+    } else {
+      pivo.add(malha(new THREE.CapsuleGeometry(0.06, 0.44, 4, 10), pele, 0, -0.27, 0));
+      const sapato = malha(new THREE.SphereGeometry(0.07, 12, 8), toon(0xe9b7a1), 0, -0.55, 0.035);
+      sapato.scale.set(0.9, 0.55, 1.4);
+      pivo.add(sapato);
+    }
     corpo.add(pivo);
     pernas.push(pivo);
   }
 
   // Vestido: tronco + saia (a saia abre quando ela gira)
-  const tronco = malha(torno([[0.2, 0.72], [0.215, 0.78], [0.24, 0.86], [0.245, 0.9], [0.228, 0.96], [0.185, 1.0], [0.11, 1.035], [0.075, 1.04]]), tecido);
-  corpo.add(tronco);
-  const barra = roupa.barra;
-  const meio = (0.74 + barra) / 2;
-  const saia = malha(torno([[0.37 + (0.42 - barra) * 0.2, barra], [0.35, barra + 0.03], [0.31, meio - 0.05], [0.26, meio + 0.06], [0.215, 0.7], [0.2, 0.76]]), tecido);
+  const perfilTronco = [[0.2, 0.72], [0.215, 0.78], [0.24, 0.86], [0.245, 0.9], [0.228, 0.96], [0.185, 1.0], [0.11, 1.035], [0.075, 1.04]];
+  let saia;
+  if (roupa.calca) {
+    // camiseta branca por baixo e jaqueta aberta na frente
+    corpo.add(malha(torno(perfilTronco.map(([r, y]) => [r * 0.97, y])), toon(0xf8f4ec)));
+    const jaqueta = perfilTronco.map(([r, y]) => [r + 0.012, y]);
+    jaqueta.unshift([0.232, 0.7]);
+    corpo.add(malha(new THREE.LatheGeometry(jaqueta.map(([r, y]) => new THREE.Vector2(r, y)), 28, 0.42, Math.PI * 2 - 0.84), tecido));
+    saia = malha(torno([[0.235, 0.58], [0.24, 0.64], [0.22, 0.71], [0.205, 0.76]]), jeans());
+  } else {
+    corpo.add(malha(torno(perfilTronco), tecido));
+    const barra = roupa.barra;
+    const meio = (0.74 + barra) / 2;
+    saia = malha(torno([[0.37 + (0.42 - barra) * 0.2, barra], [0.35, barra + 0.03], [0.31, meio - 0.05], [0.26, meio + 0.06], [0.215, 0.7], [0.2, 0.76]]), tecido);
+  }
   corpo.add(saia);
   if (roupa.cinto) {
     const cinto = malha(new THREE.TorusGeometry(0.205, 0.022, 6, 28), toon(roupa.cinto), 0, 0.75, 0);
@@ -211,13 +259,13 @@ export function criarBia(roupaEscolhida = 'florido') {
   }
 
   contornar(raiz, 0.012);
-  raiz.userData = { corpo, pernas, bracos, saia, cabeca, cabeloGrupo };
+  raiz.userData = { corpo, pernas, bracos, saia, cabeca, cabeloGrupo, calca: !!roupa.calca };
   return raiz;
 }
 
 // Anima a Bia conforme o estado do jogador.
 export function animarBia(modelo, estado, tempo, dt) {
-  const { corpo, pernas, bracos, saia, cabeca, cabeloGrupo } = modelo.userData;
+  const { corpo, pernas, bracos, saia, cabeca, cabeloGrupo, calca } = modelo.userData;
   if (!corpo) return;
   const suave = (atual, alvo, f = 12) => atual + (alvo - atual) * Math.min(dt * f, 1);
   const correndo = estado.noChao && estado.velocidadeChao > 0.5;
@@ -246,8 +294,8 @@ export function animarBia(modelo, estado, tempo, dt) {
 
   if (estado.girando) {
     corpo.rotation.y += dt * 26;
-    saia.scale.x = saia.scale.z = suave(saia.scale.x, 1.35, 20);
-    saia.scale.y = suave(saia.scale.y, 0.82, 20);
+    saia.scale.x = saia.scale.z = suave(saia.scale.x, calca ? 1.03 : 1.35, 20);
+    saia.scale.y = suave(saia.scale.y, calca ? 1 : 0.82, 20);
     cabeloGrupo.scale.x = cabeloGrupo.scale.z = suave(cabeloGrupo.scale.x, 1.18, 20);
   } else {
     corpo.rotation.y = suave(corpo.rotation.y % (Math.PI * 2), 0, 10);

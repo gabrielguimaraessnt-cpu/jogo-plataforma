@@ -131,19 +131,27 @@ kbd { background: #fff0f5; border: 1px solid var(--borda); border-radius: 6px; p
 
 /* Toque */
 #toque { position: fixed; inset: 0; pointer-events: none; }
+/* Celular em pé: gira tudo 90° para jogar na horizontal */
+body.girado {
+  position: fixed; top: 0; left: 0; width: var(--alt); height: var(--larg);
+  transform-origin: top left; transform: rotate(90deg) translateY(-100%);
+}
+
 #toque button {
-  pointer-events: auto; position: absolute; width: 64px; height: 64px; border-radius: 50%;
+  pointer-events: auto; position: absolute; width: 74px; height: 74px; border-radius: 50%;
   font-size: 26px; background: rgba(255,255,255,.25); border: 2px solid rgba(255,255,255,.55); padding: 0; color: #fff;
 }
 #toque button.ativo { background: rgba(224,69,123,.6); }
-.direcional { position: absolute; left: 20px; bottom: 20px; width: 200px; height: 200px; }
-.direcional [data-tecla="cima"] { left: 68px; top: 0; }
-.direcional [data-tecla="esquerda"] { left: 0; top: 68px; }
-.direcional [data-tecla="direita"] { left: 136px; top: 68px; }
-.direcional [data-tecla="baixo"] { left: 68px; top: 136px; }
-.acoes { position: absolute; right: 20px; bottom: 30px; width: 170px; height: 150px; }
-.acoes [data-tecla="girar"] { left: 0; top: 70px; width: 72px !important; height: 72px !important; }
-.acoes [data-tecla="pular"] { right: 0; top: 0; width: 84px !important; height: 84px !important; }
+.direcional { position: absolute; left: max(18px, env(safe-area-inset-left, 0px)); bottom: 14px; width: 234px; height: 234px; }
+.direcional [data-tecla="cima"] { left: 80px; top: 0; }
+.direcional [data-tecla="esquerda"] { left: 0; top: 80px; }
+.direcional [data-tecla="direita"] { left: 160px; top: 80px; }
+.direcional [data-tecla="baixo"] { left: 80px; top: 160px; }
+.acoes { position: absolute; right: max(18px, env(safe-area-inset-right, 0px)); bottom: 18px; width: 210px; height: 190px; }
+.acoes [data-tecla="girar"] { left: 0; top: 96px; width: 88px !important; height: 88px !important; font-size: 32px !important; }
+.acoes [data-tecla="pular"] { right: 0; top: 0; width: 104px !important; height: 104px !important; font-size: 36px !important; }
+body.tela-baixa .direcional { transform: scale(.82); transform-origin: bottom left; }
+body.tela-baixa .acoes { transform: scale(.82); transform-origin: bottom right; }
 #toque .botao-pausa { right: 16px; top: 60px; width: 48px; height: 48px; font-size: 18px; }
 
 @media (max-width: 520px), (max-height: 520px) {
@@ -152,3 +160,36 @@ kbd { background: #fff0f5; border: 1px solid var(--borda); border-radius: 6px; p
   .painel { padding: 14px 16px; gap: 7px; }
   button { font-size: 16px; padding: 6px 12px; }
 }
+
+/* Músicas */
+.escolha-musica { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.escolha-musica button { display: flex; flex-direction: column; gap: 2px; font-size: 17px; line-height: 1.15; }
+.escolha-musica button small { font-weight: 500; font-size: 13px; color: var(--suave); }
+.escolha-musica button.escolhida { border-color: var(--destaque); background: #fff0f5; }
+#arquivos-musica { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.botao-arquivo {
+  font-size: 18px; font-weight: 700; color: #fff; background: var(--verde); border: 3px solid #1b4332;
+  border-radius: 14px; padding: 8px 16px; cursor: pointer;
+}
+#arquivos-musica:focus-visible + .botao-arquivo, .botao-arquivo:hover { background: #40916c; }
+@media (max-width: 420px) { .escolha-musica { grid-template-columns: 1fr; } }
+
+/* Nome de quem joga */
+.form-nome { display: flex; flex-direction: column; gap: 8px; }
+.form-nome input {
+  font: inherit; font-size: 20px; padding: 8px 14px; border-radius: 14px; text-align: center;
+  border: 3px solid var(--borda); background: #fff; color: var(--texto);
+}
+.form-nome input:focus { outline: 3px solid var(--destaque); outline-offset: 2px; }
+.aviso-erro { color: #c1121f; min-height: 1em; }
+.jogador-atual { margin: -4px 0 4px; font-size: 16px; }
+button.link { background: none; border: none; padding: 0 4px; font-size: 16px; color: var(--destaque); text-decoration: underline; }
+
+/* Tela baixa (celular na horizontal): menus mais compactos */
+body.tela-baixa .painel { padding: 10px 16px; gap: 5px; max-height: calc(100% - 8px); }
+body.tela-baixa h1 { font-size: 46px; }
+body.tela-baixa h1 small { font-size: 16px; }
+body.tela-baixa h2 { font-size: 22px; }
+body.tela-baixa button { font-size: 15px; padding: 4px 12px; }
+body.tela-baixa .contagem, body.tela-baixa .faixa, body.tela-baixa .jogador-atual { font-size: 14px; margin: 0; padding: 2px 8px; }
+body.tela-baixa .tela { padding: 4px 12px; }

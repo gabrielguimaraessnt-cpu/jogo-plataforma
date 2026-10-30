@@ -7,15 +7,17 @@ const MAIOR = [0, 2, 4, 5, 7, 9, 11];
 const MENOR = [0, 2, 3, 5, 7, 8, 10];
 const PENTA = [0, 2, 4, 7, 9];
 
+// Estilos: 'funkpop' (groove dançante de baixo, guitarrinha e metais), 'house' e 'eletronica' (batida reta),
+// 'louvor' (banda da igreja), 'natal', 'tensa' e 'romantica'. Tudo composto aqui, nada copiado.
 const TRILHAS = {
-  menu:      { bpm: 100, raiz: 57, escala: MAIOR, acordes: [0, 5, 3, 4], estilo: 'pop', lead: 'triangle', semente: 1 },
-  familia:   { bpm: 116, raiz: 60, escala: MAIOR, acordes: [0, 4, 5, 3], estilo: 'pop', lead: 'square', semente: 2 },
+  menu:      { bpm: 112, raiz: 57, escala: MENOR, acordes: [0, 3, 5, 4], estilo: 'funkpop', lead: 'square', semente: 11 },
+  familia:   { bpm: 114, raiz: 60, escala: MAIOR, acordes: [0, 4, 5, 3], estilo: 'funkpop', lead: 'square', semente: 2 },
   igreja:    { bpm: 92, raiz: 55, escala: MAIOR, acordes: [0, 4, 5, 3, 0, 4, 3, 4], estilo: 'louvor', lead: 'triangle', semente: 3 },
-  natal:     { bpm: 108, raiz: 62, escala: MAIOR, acordes: [0, 3, 4, 0, 5, 1, 4, 0], estilo: 'natal', lead: 'sine', semente: 9 },
-  atelie:    { bpm: 92, raiz: 62, escala: MAIOR, acordes: [0, 5, 1, 4], estilo: 'lofi', lead: 'triangle', semente: 4 },
-  rodizio:   { bpm: 120, raiz: 62, escala: PENTA, acordes: [0, 3, 0, 4], estilo: 'pop', lead: 'triangle', semente: 5 },
+  natal:     { bpm: 120, raiz: 62, escala: MAIOR, acordes: [0, 3, 4, 0, 5, 1, 4, 0], estilo: 'natal', lead: 'sine', semente: 9 },
+  atelie:    { bpm: 120, raiz: 62, escala: MAIOR, acordes: [0, 5, 1, 4], estilo: 'house', lead: 'triangle', semente: 4 },
+  rodizio:   { bpm: 116, raiz: 62, escala: PENTA, acordes: [0, 3, 0, 4], estilo: 'funkpop', lead: 'triangle', semente: 5 },
   fitdance:  { bpm: 128, raiz: 57, escala: MENOR, acordes: [0, 5, 2, 6], estilo: 'eletronica', lead: 'sawtooth', semente: 6 },
-  loja:      { bpm: 138, raiz: 52, escala: MENOR, acordes: [0, 0, 5, 4], estilo: 'tensa', lead: 'square', semente: 7 },
+  loja:      { bpm: 132, raiz: 52, escala: MENOR, acordes: [0, 0, 5, 4], estilo: 'tensa', lead: 'square', semente: 7 },
   casamento: { bpm: 76, raiz: 60, escala: MAIOR, acordes: [0, 4, 5, 3, 0, 3, 4, 4], estilo: 'romantica', lead: 'sine', semente: 8 },
 };
 
@@ -40,6 +42,26 @@ function nota(c, destino, { t, midi, dur, tipo = 'triangle', vol = 0.2, ataque =
   o.stop(t + dur + 0.05);
 }
 
+// Três serras levemente desafinadas: o "som gordo" de música eletrônica.
+function supersaw(c, destino, { t, midi, dur, vol = 0.03, filtro = 2600, ataque = 0.01 }) {
+  for (const d of [-9, 0, 9]) {
+    const o = c.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.value = freq(midi);
+    o.detune.value = d;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + ataque);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+    const f = c.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = filtro;
+    o.connect(g).connect(f).connect(destino);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  }
+}
+
 function bateria(c, destino, t, tipo, vol = 0.5) {
   if (tipo === 'bumbo') {
     const o = c.createOscillator(), g = c.createGain();
@@ -51,17 +73,17 @@ function bateria(c, destino, t, tipo, vol = 0.5) {
     o.start(t); o.stop(t + 0.2);
     return;
   }
-  const dur = tipo === 'caixa' ? 0.14 : 0.04;
+  const dur = tipo === 'caixa' || tipo === 'palma' ? 0.14 : tipo === 'aberto' ? 0.16 : 0.04;
   const buf = c.createBuffer(1, Math.floor(c.sampleRate * dur), c.sampleRate);
   const d = buf.getChannelData(0);
   for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
   const f = c.createBufferSource();
   f.buffer = buf;
   const filtro = c.createBiquadFilter();
-  filtro.type = tipo === 'caixa' ? 'bandpass' : 'highpass';
-  filtro.frequency.value = tipo === 'caixa' ? 1800 : 7000;
+  filtro.type = tipo === 'caixa' || tipo === 'palma' ? 'bandpass' : 'highpass';
+  filtro.frequency.value = tipo === 'caixa' ? 1800 : tipo === 'palma' ? 1200 : 7000;
   const g = c.createGain();
-  g.gain.value = vol * (tipo === 'caixa' ? 0.6 : 0.25);
+  g.gain.value = vol * (tipo === 'caixa' || tipo === 'palma' ? 0.6 : 0.25);
   f.connect(filtro).connect(g).connect(destino);
   f.start(t);
 }
@@ -101,13 +123,30 @@ function agendarPasso(c, tr, comp, passo, t) {
   const acorde = tr.acordes[compasso];
   const m = mestre;
 
+  const volta = Math.floor(passo / total); // a cada volta da música, a batida fica mais cheia
   switch (tr.estilo) {
-    case 'eletronica':
-      if (p % 4 === 0) bateria(c, m, t, 'bumbo', 0.7);
-      if (p % 4 === 2) bateria(c, m, t, 'chimbal', 0.8);
-      if (p === 4 || p === 12) bateria(c, m, t, 'caixa', 0.5);
-      if (p % 2 === 0) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2), dur: dur16 * 1.5, tipo: 'sawtooth', vol: 0.12, filtro: 700 });
-      if (p % 4 === 2) for (const k of [0, 2, 4]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, 0), dur: dur16 * 1.6, tipo: 'sawtooth', vol: 0.035, filtro: 2400 });
+    case 'eletronica': // EDM: bumbo reto, chimbal aberto no contratempo, acordes "gordos"
+      if (p % 4 === 0) bateria(c, m, t, 'bumbo', 0.75);
+      if (p % 4 === 2) bateria(c, m, t, 'aberto', 0.9);
+      if (p % 2 === 1) bateria(c, m, t, 'chimbal', 0.4);
+      if (p === 4 || p === 12) bateria(c, m, t, 'palma', 0.7);
+      if (p % 4 === 2) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2), dur: dur16 * 1.6, tipo: 'sawtooth', vol: 0.12, filtro: 600 });
+      if (p % 4 === 2 || (volta % 2 && p % 4 === 3)) for (const k of [0, 2, 4]) supersaw(c, m, { t, midi: grauParaMidi(tr, acorde + k, 0), dur: dur16 * 1.4, vol: 0.016, filtro: 3200 });
+      break;
+    case 'house': // house: batida reta, órgão em acordes no contratempo, baixo saltitante
+      if (p % 4 === 0) bateria(c, m, t, 'bumbo', 0.65);
+      if (p % 4 === 2) bateria(c, m, t, 'aberto', 0.7);
+      if (p === 4 || p === 12) bateria(c, m, t, 'palma', 0.55);
+      if ([2, 6, 10, 14, 15].includes(p)) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2) + (p === 15 ? 12 : 0), dur: dur16 * 1.2, tipo: 'triangle', vol: 0.17 });
+      if ([3, 6, 11].includes(p)) for (const k of [0, 2, 4, 6]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, -1), dur: dur16 * 1.3, tipo: 'square', vol: 0.018, filtro: 1500 });
+      break;
+    case 'funkpop': // groove dançante: baixo sincopado, guitarrinha abafada e metais
+      if (p === 0 || p === 7 || p === 10) bateria(c, m, t, 'bumbo', 0.6);
+      if (p === 4 || p === 12) { bateria(c, m, t, 'caixa', 0.55); bateria(c, m, t, 'palma', 0.35); }
+      bateria(c, m, t, 'chimbal', p % 4 === 2 ? 0.55 : 0.3);
+      if ([0, 3, 6, 8, 10, 11, 14].includes(p)) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2) + ([6, 11].includes(p) ? 12 : 0), dur: dur16 * 0.9, tipo: 'square', vol: 0.09, filtro: 900 });
+      if (p % 2 === 1) nota(c, m, { t, midi: grauParaMidi(tr, acorde + [2, 4][(p >> 1) % 2], 0), dur: dur16 * 0.5, tipo: 'sawtooth', vol: 0.02, filtro: 2200 });
+      if (p === 6 || p === 14 || (volta % 2 && p === 15)) for (const k of [0, 2, 4]) supersaw(c, m, { t, midi: grauParaMidi(tr, acorde + k, 0), dur: dur16 * 1.2, vol: 0.02, filtro: 2800 });
       break;
     case 'orgao':
       if (p === 0) for (const k of [0, 2, 4]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, -1), dur: dur16 * 15, tipo: 'sine', vol: 0.07, ataque: 0.15 });
@@ -122,20 +161,22 @@ function agendarPasso(c, tr, comp, passo, t) {
       if (p === 0 || p === 8) for (const k of [0, 2, 4]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, -1), dur: dur16 * 7, tipo: 'sine', vol: 0.06, ataque: 0.04 });
       if (p % 2 === 1) nota(c, m, { t, midi: grauParaMidi(tr, acorde + [0, 2, 4, 2][(p >> 1) % 4], 0), dur: dur16 * 1.5, tipo: 'square', vol: 0.018, filtro: 1600 });
       break;
-    case 'natal': // sininhos e baixo saltitante
-      if (p % 4 === 0) nota(c, m, { t, midi: grauParaMidi(tr, acorde + (p % 8 ? 4 : 0), -2), dur: dur16 * 2, tipo: 'triangle', vol: 0.15 });
-      if (p % 2 === 0) bateria(c, m, t, 'chimbal', 0.35);
-      if (p === 4 || p === 12) bateria(c, m, t, 'caixa', 0.25);
+    case 'natal': // sininhos sobre batida eletrônica leve
+      if (p % 4 === 0) bateria(c, m, t, 'bumbo', 0.5);
+      if (p % 4 === 2) bateria(c, m, t, 'aberto', 0.5);
+      if (p % 4 === 2) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2), dur: dur16 * 1.5, tipo: 'triangle', vol: 0.15 });
+      if (p === 4 || p === 12) bateria(c, m, t, 'palma', 0.4);
       if (p % 4 === 2) for (const k of [0, 2, 4]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, 1), dur: dur16 * 2.5, tipo: 'sine', vol: 0.025 });
       break;
     case 'romantica':
       if (p === 0) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2), dur: dur16 * 11, tipo: 'triangle', vol: 0.14, ataque: 0.05 });
       if (p === 4 || p === 8) for (const k of [2, 4]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, -1), dur: dur16 * 3, tipo: 'sine', vol: 0.06 });
       break;
-    case 'tensa':
-      if (p % 4 === 0) bateria(c, m, t, 'bumbo', 0.6);
-      if (p === 4 || p === 12) bateria(c, m, t, 'caixa', 0.6);
+    case 'tensa': // techno apressado (a pressão da meta!)
+      if (p % 4 === 0) bateria(c, m, t, 'bumbo', 0.7);
+      if (p === 4 || p === 12) bateria(c, m, t, 'palma', 0.6);
       if (p % 2 === 1) bateria(c, m, t, 'chimbal', 0.6);
+      if (p % 4 === 2) supersaw(c, m, { t, midi: grauParaMidi(tr, acorde + 2, -1), dur: dur16, vol: 0.015, filtro: 1800 });
       if (p % 2 === 0) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2) + (p % 8 === 6 ? 1 : 0), dur: dur16, tipo: 'square', vol: 0.07, filtro: 900 });
       break;
     case 'lofi':
@@ -160,6 +201,7 @@ function agendarPasso(c, tr, comp, passo, t) {
 }
 
 export function tocarMusica(nome) {
+  if (usandoMinhas()) { pararMusica(); atual = { nome, tr: TRILHAS[nome] ?? TRILHAS.menu, passo: 0, proximo: 0 }; atual.comp = compor(atual.tr); tocarLista(); return; }
   if (atual?.nome === nome) { if (!relogio && !estaMudo()) iniciar(); return; }
   pararMusica();
   const tr = TRILHAS[nome] ?? TRILHAS.menu;
@@ -169,7 +211,7 @@ export function tocarMusica(nome) {
 }
 
 function iniciar() {
-  if (!atual || relogio) return;
+  if (!atual || relogio || usandoMinhas()) return;
   let c;
   try { c = contexto(); } catch { return; }
   mestre = c.createGain();
@@ -194,4 +236,105 @@ export function pararMusica() {
   mestre = null;
 }
 
-quandoMudarSom((mudo) => { if (mudo) pararMusica(); else iniciar(); });
+quandoMudarSom((mudo) => {
+  player.muted = mudo;
+  if (mudo) pararMusica(); else if (usandoMinhas()) tocarLista(); else iniciar();
+});
+
+// ---------- Minhas músicas ----------
+// A Bia escolhe arquivos de música do próprio aparelho. Eles ficam guardados só no navegador dela
+// (IndexedDB) e tocam em sequência, embaralhados, no lugar da trilha do jogo.
+
+const player = new Audio();
+player.volume = 0.7;
+player.muted = estaMudo();
+let lista = [];
+let posicao = 0;
+let modo = 'jogo';
+try { modo = localStorage.getItem('bia-musica-modo') ?? 'jogo'; } catch {}
+const ouvintes = new Set();
+export function aoMudarMinhasMusicas(fn) { ouvintes.add(fn); }
+function avisar() { for (const fn of ouvintes) fn(estadoMinhasMusicas()); }
+
+function usandoMinhas() { return modo === 'minhas' && lista.length > 0; }
+
+export function estadoMinhasMusicas() {
+  return { modo, quantidade: lista.length, tocando: usandoMinhas() ? lista[posicao]?.nome ?? '' : '' };
+}
+
+function banco() {
+  return new Promise((ok, erro) => {
+    const r = indexedDB.open('bia-musicas', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('musicas', { keyPath: 'id', autoIncrement: true });
+    r.onsuccess = () => ok(r.result);
+    r.onerror = () => erro(r.error);
+  });
+}
+
+async function operacao(tipo, fn) {
+  const db = await banco();
+  return new Promise((ok, erro) => {
+    const tx = db.transaction('musicas', tipo);
+    const pedido = fn(tx.objectStore('musicas'));
+    tx.oncomplete = () => ok(pedido?.result);
+    tx.onerror = () => erro(tx.error);
+  });
+}
+
+function embaralhar(v) {
+  for (let i = v.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [v[i], v[j]] = [v[j], v[i]]; }
+  return v;
+}
+
+export async function carregarMinhasMusicas() {
+  try {
+    const itens = await operacao('readonly', (loja) => loja.getAll());
+    for (const m of lista) URL.revokeObjectURL(m.url);
+    lista = embaralhar((itens ?? []).map((m) => ({ nome: m.nome, url: URL.createObjectURL(m.arquivo) })));
+    posicao = 0;
+  } catch { lista = []; }
+  avisar();
+}
+
+export async function adicionarMinhasMusicas(arquivos) {
+  for (const arquivo of arquivos) {
+    if (!arquivo.type.startsWith('audio/') && !/\.(mp3|m4a|aac|ogg|wav|opus|flac)$/i.test(arquivo.name)) continue;
+    const nome = arquivo.name.replace(/\.[^.]+$/, '');
+    await operacao('readwrite', (loja) => loja.add({ nome, arquivo }));
+  }
+  await carregarMinhasMusicas();
+}
+
+export async function apagarMinhasMusicas() {
+  try { await operacao('readwrite', (loja) => loja.clear()); } catch {}
+  player.pause();
+  await carregarMinhasMusicas();
+  if (atual) { const nome = atual.nome; atual = null; tocarMusica(nome); }
+}
+
+export function escolherModoMusica(novo) {
+  modo = novo;
+  try { localStorage.setItem('bia-musica-modo', modo); } catch {}
+  const nome = atual?.nome ?? 'menu';
+  if (usandoMinhas()) { pararMusica(); tocarLista(); }
+  else { player.pause(); atual = null; tocarMusica(nome); }
+  avisar();
+}
+
+function tocarLista() {
+  if (!usandoMinhas() || estaMudo()) return;
+  if (!player.src || player.ended || player.src !== lista[posicao].url) player.src = lista[posicao].url;
+  player.play().catch(() => {});
+  avisar();
+}
+
+export function proximaMusica() {
+  if (!usandoMinhas()) return;
+  posicao = (posicao + 1) % lista.length;
+  player.src = lista[posicao].url;
+  tocarLista();
+}
+
+player.addEventListener('ended', proximaMusica);
+// O navegador só deixa tocar depois de um toque/tecla: tenta de novo no primeiro gesto.
+for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => { if (usandoMinhas() && player.paused && !estaMudo()) tocarLista(); });

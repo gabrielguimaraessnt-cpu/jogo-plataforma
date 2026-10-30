@@ -5,8 +5,10 @@ const MAPA_TECLADO = {
   KeyS: 'baixo', ArrowDown: 'baixo',
   KeyA: 'esquerda', ArrowLeft: 'esquerda',
   KeyD: 'direita', ArrowRight: 'direita',
-  Space: 'pular',
-  KeyJ: 'girar', ShiftLeft: 'girar', ShiftRight: 'girar', KeyK: 'girar',
+  Space: 'pular', KeyZ: 'pular',
+  // Girar: J, K, E ou X (o Shift saiu: no Windows ele abre a janela de "teclas de aderência").
+  KeyJ: 'girar', KeyK: 'girar', KeyE: 'girar', KeyX: 'girar',
+  KeyN: 'proximaMusica',
   Escape: 'pausa', KeyP: 'pausa',
   KeyM: 'som',
   Enter: 'confirmar', NumpadEnter: 'confirmar',
@@ -98,6 +100,7 @@ export function lerEntrada() {
     girou: apertadasAgora.has('girar'),
     pausou: apertadasAgora.has('pausa'),
     som: apertadasAgora.has('som'),
+    proximaMusica: apertadasAgora.has('proximaMusica'),
     // para os menus: o que foi apertado neste quadro
     menu: {
       anterior: apertadasAgora.has('cima') || apertadasAgora.has('esquerda'),

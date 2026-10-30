@@ -28,14 +28,30 @@
   <div id="chefe-barra" class="oculto"><span>Gerente</span><div id="chefe-vidas"></div></div>
   <div id="aviso" class="oculto"></div>
 
+  <!-- Nome de quem joga (aparece na primeira vez) -->
+  <div id="tela-nome" class="tela oculto">
+    <div class="painel">
+      <h1><small>As Aventuras da</small>Bia<span class="pinheirinho">🌲</span></h1>
+      <h2>Quem vai jogar?</h2>
+      <form id="form-nome" class="form-nome">
+        <label for="nome-inicial" class="dica">Seu nome aparece no placar online junto com seus tempos.</label>
+        <input id="nome-inicial" maxlength="40" placeholder="Nome e sobrenome" autocomplete="name" required>
+        <button type="submit" class="principal">Começar</button>
+      </form>
+      <p id="nome-status" class="dica aviso-erro"></p>
+    </div>
+  </div>
+
   <!-- Menu principal -->
   <div id="tela-menu" class="tela">
     <div class="painel painel-menu">
       <div id="faixa-aniversario" class="faixa oculto"></div>
       <h1><small>As Aventuras da</small>Bia<span class="pinheirinho">🌲</span></h1>
       <p id="contagem" class="contagem"></p>
+      <p id="jogador-atual" class="jogador-atual oculto">Jogando como <b id="jogador-nome"></b> <button data-acao="trocar-nome" class="link">trocar</button></p>
       <button data-acao="mapa" class="principal">Jogar</button>
       <button data-acao="roupas">Guarda-roupa</button>
+      <button data-acao="musicas">Músicas</button>
       <button data-acao="recordes">Recordes online</button>
       <button data-acao="controles">Controles</button>
     </div>
@@ -63,10 +79,11 @@
       <h2>Controles</h2>
       <table class="controles">
         <tr><td>Andar</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou setas</td></tr>
-        <tr><td>Pular</td><td><kbd>Espaço</kbd></td></tr>
-        <tr><td>Giro do Fit Dance</td><td><kbd>J</kbd> ou <kbd>Shift</kbd></td></tr>
+        <tr><td>Pular</td><td><kbd>Espaço</kbd> ou <kbd>Z</kbd></td></tr>
+        <tr><td>Giro do Fit Dance</td><td><kbd>J</kbd>, <kbd>K</kbd>, <kbd>E</kbd> ou <kbd>X</kbd></td></tr>
         <tr><td>Pausar</td><td><kbd>Esc</kbd> ou <kbd>P</kbd></td></tr>
-        <tr><td>Som</td><td><kbd>M</kbd></td></tr>
+        <tr><td>Som</td><td><kbd>M</kbd> liga/desliga, <kbd>N</kbd> próxima música</td></tr>
+        <tr><td>Menus</td><td>setas e <kbd>Enter</kbd>; <kbd>Esc</kbd> volta</td></tr>
       </table>
       <ul class="dica lista-dicas">
         <li>🎁 Pule em cima dos presentes ou gire perto deles para abrir.</li>
@@ -77,6 +94,23 @@
       </ul>
       <p class="dica">Controle de videogame também funciona.</p>
       <button data-acao="voltar">Voltar</button>
+    </div>
+  </div>
+
+  <div id="tela-musicas" class="tela oculto">
+    <div class="painel">
+      <h2>Músicas</h2>
+      <div class="escolha-musica">
+        <button data-modo-musica="jogo" id="modo-jogo">Trilha do jogo<small>eletrônica e pop dançante, feita para cada mundo</small></button>
+        <button data-modo-musica="minhas" id="modo-minhas">Minhas músicas<small id="minhas-resumo">nenhuma música adicionada</small></button>
+      </div>
+      <label class="botao-arquivo" for="arquivos-musica">Adicionar músicas do aparelho</label>
+      <input id="arquivos-musica" type="file" accept="audio/*,.mp3,.m4a,.aac,.ogg,.wav" multiple>
+      <p class="dica" id="tocando-agora"></p>
+      <button data-acao="proxima-musica" id="botao-proxima-musica">Próxima música</button>
+      <button data-acao="apagar-musicas" id="botao-apagar-musicas">Apagar minhas músicas</button>
+      <p class="dica">As músicas que você adicionar ficam guardadas só neste aparelho, não vão para a internet.</p>
+      <button data-acao="voltar" class="principal">Voltar</button>
     </div>
   </div>
 
@@ -103,7 +137,7 @@
       <h2 id="fim-titulo">Fase concluída!</h2>
       <div id="fim-resumo" class="resumo"></div>
       <form id="form-recorde">
-        <input id="nome-jogador" maxlength="16" placeholder="Seu nome" autocomplete="nickname" required>
+        <input id="nome-jogador" maxlength="40" placeholder="Nome e sobrenome" autocomplete="nickname" required>
         <button type="submit">Enviar tempo</button>
       </form>
       <div id="fim-status" class="dica"></div>
