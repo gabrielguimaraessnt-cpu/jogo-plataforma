@@ -9,6 +9,7 @@ const MAPA_TECLADO = {
   KeyJ: 'girar', ShiftLeft: 'girar', ShiftRight: 'girar', KeyK: 'girar',
   Escape: 'pausa', KeyP: 'pausa',
   KeyM: 'som',
+  Enter: 'confirmar', NumpadEnter: 'confirmar',
 };
 
 const seguradas = new Set();
@@ -22,7 +23,8 @@ function apertar(nome) {
 function soltar(nome) { seguradas.delete(nome); }
 
 addEventListener('keydown', (e) => {
-  if (e.target instanceof HTMLInputElement) return;
+  // Digitando o nome: só as setas para cima/baixo e o Esc saem do campo.
+  if (e.target instanceof HTMLInputElement && !['ArrowUp', 'ArrowDown', 'Escape'].includes(e.code)) return;
   const nome = MAPA_TECLADO[e.code];
   if (!nome) return;
   e.preventDefault();
@@ -68,6 +70,11 @@ function lerControle() {
     const [ax = 0, ay = 0] = c.axes;
     if (Math.abs(ax) > 0.2) eixos.x = ax;
     if (Math.abs(ay) > 0.2) eixos.y = ay;
+    // analógico empurrado até o fim também conta como seta (para andar nos menus)
+    if (ax < -0.6) agora.add('esquerda');
+    if (ax > 0.6) agora.add('direita');
+    if (ay < -0.6) agora.add('cima');
+    if (ay > 0.6) agora.add('baixo');
   }
   for (const n of agora) if (!controleAntes.has(n)) apertar(n);
   for (const n of controleAntes) if (!agora.has(n) && !toque.has(n)) soltar(n);
@@ -91,6 +98,13 @@ export function lerEntrada() {
     girou: apertadasAgora.has('girar'),
     pausou: apertadasAgora.has('pausa'),
     som: apertadasAgora.has('som'),
+    // para os menus: o que foi apertado neste quadro
+    menu: {
+      anterior: apertadasAgora.has('cima') || apertadasAgora.has('esquerda'),
+      proximo: apertadasAgora.has('baixo') || apertadasAgora.has('direita'),
+      escolher: apertadasAgora.has('confirmar') || apertadasAgora.has('pular'),
+      voltar: apertadasAgora.has('pausa') || apertadasAgora.has('girar'),
+    },
   };
   apertadasAgora.clear();
   return estado;

@@ -237,6 +237,28 @@ $('form-recorde').addEventListener('submit', async (e) => {
   }
 });
 
+// ---------- Menus pelo teclado e pelo controle ----------
+// Setas/analógico passam de um item para o outro, Enter/Espaço/A escolhe, Esc/B volta.
+
+function navegarMenu(m) {
+  const id = telas.find((t) => !$(t).classList.contains('oculto'));
+  if (!id || !(m.anterior || m.proximo || m.escolher || m.voltar)) return;
+  const itens = [...$(id).querySelectorAll('button, select, input')]
+    .filter((el) => !el.disabled && el.getClientRects().length > 0);
+  if (!itens.length) return;
+  const atual = itens.indexOf(document.activeElement);
+  if (m.anterior || m.proximo) {
+    const i = atual < 0 ? 0 : (atual + (m.proximo ? 1 : -1) + itens.length) % itens.length;
+    itens[i].focus({ preventScroll: true });
+    itens[i].scrollIntoView({ block: 'nearest' });
+    som.menu();
+  } else if (m.escolher && atual >= 0 && itens[atual].tagName === 'BUTTON') {
+    itens[atual].click();
+  } else if (m.voltar) {
+    $(id).querySelector('[data-acao=voltar], [data-acao=continuar]')?.click();
+  }
+}
+
 // ---------- Mapa, guarda-roupa, recordes ----------
 
 function montarMapa() {
@@ -411,6 +433,7 @@ function quadro(agora) {
 
   if (estado === 'jogando' && entrada.pausou) { estado = 'pausa'; mostrarTela('tela-pausa'); }
   else if (estado === 'pausa' && entrada.pausou) { estado = 'jogando'; mostrarTela(null); }
+  else if (estado !== 'jogando') navegarMenu(entrada.menu);
 
   if (estado === 'jogando') {
     acumulado += dt;

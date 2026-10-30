@@ -53,6 +53,7 @@ http://localhost:8000/?tudo=1. Para ver a tela de aniversário: `?hoje=2026-11-0
 | Giro do Fit Dance | J ou Shift | X / ▢ |
 | Pausar | Esc ou P | Start |
 | Som | M | |
+| Menus | setas e Enter (ou Espaço); Esc volta | analógico ou direcional; A escolhe, B volta |
 
 No celular aparecem botões na tela.
 

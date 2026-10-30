@@ -81,8 +81,11 @@ button, select {
   border: 3px solid var(--borda); border-radius: 14px; padding: 8px 16px; cursor: pointer;
 }
 button:hover, button:focus-visible { background: #fff0f5; outline: none; border-color: var(--destaque-claro); }
+.tela button:focus, .tela select:focus { outline: 3px solid var(--destaque); outline-offset: 3px; background: #ffd6e4; border-color: var(--destaque); transform: scale(1.03); }
+.tela button { transition: transform .12s ease, background .12s ease; }
+@media (prefers-reduced-motion: reduce) { .tela button { transition: none; } .tela button:focus { transform: none; } }
 button.principal { background: var(--destaque); border-color: #c2185b; color: #fff; }
-button.principal:hover, button.principal:focus-visible { background: #f25c8f; }
+button.principal:hover, button.principal:focus-visible, button.principal:focus { background: #f25c8f; }
 button:disabled { opacity: .45; cursor: not-allowed; }
 
 .dica { color: var(--suave); font-size: 15px; margin: 2px 0; }

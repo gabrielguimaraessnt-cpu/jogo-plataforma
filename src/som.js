@@ -57,6 +57,7 @@ function ruido({ duracao = 0.2, volume = 0.25, corte = 1200, atraso = 0 }) {
 }
 
 export const som = {
+  menu: () => tom({ tipo: 'triangle', de: 880, duracao: 0.05, volume: 0.06 }),
   pulo: () => tom({ de: 260, ate: 620, duracao: 0.14, volume: 0.08 }),
   giro: () => tom({ tipo: 'sawtooth', de: 900, ate: 300, duracao: 0.25, volume: 0.05 }),
   fruta: () => { tom({ tipo: 'sine', de: 1320, duracao: 0.06, volume: 0.1 }); tom({ tipo: 'sine', de: 1760, duracao: 0.1, volume: 0.1, atraso: 0.05 }); },
