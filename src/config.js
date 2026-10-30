@@ -10,7 +10,7 @@ export const HISTORIA = {
   nomeCompleto: 'Beatriz Pinheiro',
   aniversario: { dia: 8, mes: 11, anoNascimento: 1996 },
   casamento: new Date(2027, 9, 17), // 17/10/2027 (mês começa em 0)
-  noivo: '',                        // nome do noivo para a cena final (deixe vazio para não mostrar)
+  noivo: 'Gabriel',                 // nome do noivo na cena final (deixe vazio para não mostrar)
   mensagemFinal: 'E essa é só a primeira fase da nossa história.',
 };
 

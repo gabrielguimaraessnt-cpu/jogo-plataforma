@@ -10,7 +10,8 @@ const PENTA = [0, 2, 4, 7, 9];
 const TRILHAS = {
   menu:      { bpm: 100, raiz: 57, escala: MAIOR, acordes: [0, 5, 3, 4], estilo: 'pop', lead: 'triangle', semente: 1 },
   familia:   { bpm: 116, raiz: 60, escala: MAIOR, acordes: [0, 4, 5, 3], estilo: 'pop', lead: 'square', semente: 2 },
-  igreja:    { bpm: 84, raiz: 55, escala: MAIOR, acordes: [0, 3, 4, 0, 5, 3, 1, 4], estilo: 'orgao', lead: 'sine', semente: 3 },
+  igreja:    { bpm: 92, raiz: 55, escala: MAIOR, acordes: [0, 4, 5, 3, 0, 4, 3, 4], estilo: 'louvor', lead: 'triangle', semente: 3 },
+  natal:     { bpm: 108, raiz: 62, escala: MAIOR, acordes: [0, 3, 4, 0, 5, 1, 4, 0], estilo: 'natal', lead: 'sine', semente: 9 },
   atelie:    { bpm: 92, raiz: 62, escala: MAIOR, acordes: [0, 5, 1, 4], estilo: 'lofi', lead: 'triangle', semente: 4 },
   rodizio:   { bpm: 120, raiz: 62, escala: PENTA, acordes: [0, 3, 0, 4], estilo: 'pop', lead: 'triangle', semente: 5 },
   fitdance:  { bpm: 128, raiz: 57, escala: MENOR, acordes: [0, 5, 2, 6], estilo: 'eletronica', lead: 'sawtooth', semente: 6 },
@@ -112,6 +113,20 @@ function agendarPasso(c, tr, comp, passo, t) {
       if (p === 0) for (const k of [0, 2, 4]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, -1), dur: dur16 * 15, tipo: 'sine', vol: 0.07, ataque: 0.15 });
       if (p === 0) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2), dur: dur16 * 15, tipo: 'triangle', vol: 0.12, ataque: 0.1 });
       if (p % 4 === 0) nota(c, m, { t, midi: grauParaMidi(tr, acorde + [0, 2, 4, 2][p / 4], 1), dur: dur16 * 3, tipo: 'sine', vol: 0.05 });
+      break;
+    case 'louvor': // banda: bateria, baixo, teclado em acordes e guitarra suave
+      if (p === 0 || p === 8 || p === 10) bateria(c, m, t, 'bumbo', 0.55);
+      if (p === 4 || p === 12) bateria(c, m, t, 'caixa', 0.5);
+      if (p % 2 === 0) bateria(c, m, t, 'chimbal', 0.45);
+      if (p % 4 === 0) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2), dur: dur16 * 3.5, tipo: 'triangle', vol: 0.17 });
+      if (p === 0 || p === 8) for (const k of [0, 2, 4]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, -1), dur: dur16 * 7, tipo: 'sine', vol: 0.06, ataque: 0.04 });
+      if (p % 2 === 1) nota(c, m, { t, midi: grauParaMidi(tr, acorde + [0, 2, 4, 2][(p >> 1) % 4], 0), dur: dur16 * 1.5, tipo: 'square', vol: 0.018, filtro: 1600 });
+      break;
+    case 'natal': // sininhos e baixo saltitante
+      if (p % 4 === 0) nota(c, m, { t, midi: grauParaMidi(tr, acorde + (p % 8 ? 4 : 0), -2), dur: dur16 * 2, tipo: 'triangle', vol: 0.15 });
+      if (p % 2 === 0) bateria(c, m, t, 'chimbal', 0.35);
+      if (p === 4 || p === 12) bateria(c, m, t, 'caixa', 0.25);
+      if (p % 4 === 2) for (const k of [0, 2, 4]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, 1), dur: dur16 * 2.5, tipo: 'sine', vol: 0.025 });
       break;
     case 'romantica':
       if (p === 0) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2), dur: dur16 * 11, tipo: 'triangle', vol: 0.14, ataque: 0.05 });

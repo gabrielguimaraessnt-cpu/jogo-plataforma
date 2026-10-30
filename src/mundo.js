@@ -48,6 +48,7 @@ export class Mundo {
     this.montarInimigos();
     this.montarPlacas();
     this.tema.fundo(this.raiz, this.zMin, this.zMax, this.rnd);
+    for (const o of this.raiz.children) if (o.userData.animar && !this.animados.includes(o)) this.animados.push(o);
     this.chegada = criarChegada(!!fase.final);
     this.chegada.position.set(...fase.chegada);
     this.chegada.visible = !fase.chegadaEscondida;

@@ -67,7 +67,7 @@ html, body {
   box-shadow: 0 14px 40px rgba(74, 35, 64, .35);
 }
 .painel-menu { background: rgba(255, 248, 244, .88); }
-.painel-largo { width: min(760px, 100%); }
+.painel-largo { width: min(900px, 100%); }
 .painel-roupas { width: min(560px, 100%); margin-bottom: 2vh; padding: 14px 18px; }
 h1 { margin: 0; font-size: 92px; line-height: .85; color: var(--destaque); text-shadow: 0 5px 0 #fff, 0 7px 0 var(--borda); }
 h1 small { display: block; font-size: 24px; color: var(--texto); text-shadow: none; line-height: 1.2; letter-spacing: 1px; }
@@ -104,7 +104,7 @@ kbd { background: #fff0f5; border: 1px solid var(--borda); border-radius: 6px; p
 .lista-recordes li.meu { color: var(--destaque); font-weight: 800; }
 
 /* Mapa de mundos */
-.mapa { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; text-align: left; }
+.mapa { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; text-align: left; }
 .mundo { background: #fff; border: 3px solid var(--borda); border-radius: 16px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
 .mundo h3 { margin: 0; font-size: 18px; color: var(--texto); }
 .fase-botao { font-size: 15px; padding: 6px 8px; text-align: left; line-height: 1.15; }

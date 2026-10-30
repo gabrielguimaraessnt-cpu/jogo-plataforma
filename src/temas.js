@@ -80,6 +80,32 @@ const pintores = {
     g.fillStyle = '#fff7fb'; g.fillRect(0, 0, w, h);
     salpicar(g, w, h, 80, ['#ffe5ec', '#ffffff', '#fbe0f0'], 4, aleatorio(2));
   },
+  neve: (g, w, h) => {
+    g.fillStyle = '#f4f9ff'; g.fillRect(0, 0, w, h);
+    salpicar(g, w, h, 160, ['#e3eefc', '#ffffff', '#d6e6f7'], 3, aleatorio(21));
+  },
+  neveLado: (g, w, h) => {
+    g.fillStyle = '#7a5a43'; g.fillRect(0, 0, w, h);
+    salpicar(g, w, h, 150, ['#8a6a50', '#6a4a35'], 3, aleatorio(22));
+    g.fillStyle = '#f4f9ff'; g.fillRect(0, 0, w, 10);
+    for (let x = 0; x < w; x += 6) g.fillRect(x, 10, 4, 3 + ((x * 5) % 6));
+  },
+  gelo: (g, w, h) => {
+    g.fillStyle = '#bfe3f7'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(255,255,255,0.8)'; g.lineWidth = 1.5;
+    const rnd = aleatorio(23);
+    for (let k = 0; k < 7; k++) { g.beginPath(); g.moveTo(rnd() * w, rnd() * h); g.lineTo(rnd() * w, rnd() * h); g.stroke(); }
+  },
+  carpete: (g, w, h) => {
+    g.fillStyle = '#5b3a6b'; g.fillRect(0, 0, w, h);
+    salpicar(g, w, h, 200, ['#654276', '#523263', '#6d4a7e'], 2, aleatorio(24));
+  },
+  palco: (g, w, h) => {
+    g.fillStyle = '#3a2a24'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#2a1d18'; g.lineWidth = 2;
+    for (let y = 0; y < h; y += 16) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+    g.fillStyle = '#ffd166'; g.fillRect(0, 0, w, 4);
+  },
   gramaFlorida: (g, w, h) => {
     pintores.grama(g, w, h);
     const rnd = aleatorio(13);
@@ -191,19 +217,6 @@ function banco(comprimento = 3) {
   g.add(malha(new THREE.BoxGeometry(comprimento, 0.1, 0.6), madeira, 0, 0.5, 0));
   g.add(malha(new THREE.BoxGeometry(comprimento, 0.6, 0.08), madeira, 0, 0.85, -0.28));
   for (const x of [-comprimento / 2 + 0.1, comprimento / 2 - 0.1]) g.add(malha(new THREE.BoxGeometry(0.1, 0.5, 0.55), madeira, x, 0.25, 0));
-  return g;
-}
-
-function vela() {
-  const g = new THREE.Group();
-  g.add(malha(new THREE.CylinderGeometry(0.06, 0.08, 0.04, 8), toon(0xd4a373), 0, 0.9, 0));
-  g.add(malha(new THREE.CylinderGeometry(0.03, 0.03, 0.9, 6), toon(0xb08968), 0, 0.45, 0));
-  g.add(malha(new THREE.CylinderGeometry(0.05, 0.05, 0.3, 8), toon(0xfffaf0), 0, 1.07, 0));
-  const chama = malha(new THREE.SphereGeometry(0.04, 6, 5), brilho(0xffb703, 2), 0, 1.27, 0);
-  chama.scale.y = 1.8;
-  g.add(chama);
-  const fase = Math.random() * 6;
-  g.userData.animar = (t) => { chama.scale.y = 1.6 + Math.sin(t * 12 + fase) * 0.3; };
   return g;
 }
 
@@ -327,7 +340,7 @@ function lanterna(cor = 0xe63946) {
   return g;
 }
 
-function caixaDeSom(altura = 2.2) {
+function caixaDeSom(altura = 2.2, corAnel = 0xff4ecd) {
   const g = new THREE.Group();
   g.add(malha(caixaArredondada(1.2, altura, 1, 0.08), toon(0x1f1b2e), 0, altura / 2, 0));
   const cones = [];
@@ -335,7 +348,7 @@ function caixaDeSom(altura = 2.2) {
     const c = malha(new THREE.CylinderGeometry(r, r * 0.6, 0.1, 20), toon(0x3a3550), 0, y, 0.52);
     c.rotation.x = Math.PI / 2;
     g.add(c);
-    const anel = malha(new THREE.TorusGeometry(r, 0.03, 6, 24), brilho(0xff4ecd, 1.2), 0, y, 0.52);
+    const anel = malha(new THREE.TorusGeometry(r, 0.03, 6, 24), brilho(corAnel, 1.2), 0, y, 0.52);
     g.add(anel);
     cones.push(c);
   }
@@ -492,27 +505,6 @@ function paredes(raiz, zMin, zMax, { cor, altura = 16, distancia = 24, enfeite }
   }
 }
 
-function vitral(rnd) {
-  const g = new THREE.Group();
-  const tex = textura(128, (c, w, h) => {
-    const cores = ['#e63946', '#ffd166', '#4361ee', '#52b788', '#b5179e', '#4cc9f0'];
-    c.fillStyle = '#222'; c.fillRect(0, 0, w, h);
-    for (let i = 0; i < 4; i++) for (let j = 0; j < 8; j++) {
-      c.fillStyle = cores[Math.floor(rnd() * cores.length)];
-      c.fillRect(i * 32 + 2, j * 32 + 2, 28, 28);
-    }
-    c.fillStyle = '#fff3b0'; c.beginPath(); c.arc(64, 70, 26, 0, 7); c.fill();
-  }, { largura: 128, suave: true });
-  tex.image.height;
-  const v = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 5), new THREE.MeshBasicMaterial({ map: tex }));
-  v.position.y = 6;
-  g.add(v);
-  const topo = new THREE.Mesh(new THREE.CircleGeometry(1.1, 16, 0, Math.PI), new THREE.MeshBasicMaterial({ color: 0xffd166 }));
-  topo.position.y = 8.5;
-  g.add(topo);
-  return g;
-}
-
 function predios(raiz, zMin, zMax, rnd) {
   const janelas = textura(64, (c, w, h) => {
     c.fillStyle = '#1b1035'; c.fillRect(0, 0, w, h);
@@ -555,6 +547,221 @@ function portalJapones() {
 
 // ---------- TEMAS ----------
 
+
+// ---------- Igreja (louvor) ----------
+
+function bateria() {
+  const g = new THREE.Group();
+  const casco = toon(0xc1121f), pele = toon(0xf8f4ec), metal = toon(0xced4da), ouro = toon(0xe9c46a);
+  const bumbo = malha(new THREE.CylinderGeometry(0.45, 0.45, 0.4, 20), casco, 0, 0.47, 0);
+  bumbo.rotation.x = Math.PI / 2;
+  g.add(bumbo);
+  const frente = malha(new THREE.CircleGeometry(0.42, 20), pele, 0, 0.47, 0.205);
+  g.add(frente);
+  for (const [x, y, z, r] of [[-0.35, 0.95, 0, 0.2], [0.3, 0.95, 0, 0.2], [0.65, 0.65, -0.2, 0.25], [-0.75, 0.75, -0.1, 0.17]]) {
+    g.add(malha(new THREE.CylinderGeometry(r, r, 0.22, 16), casco, x, y, z));
+    g.add(malha(new THREE.CylinderGeometry(r * 0.98, r * 0.98, 0.01, 16), pele, x, y + 0.115, z));
+  }
+  for (const [x, y] of [[-0.9, 1.45], [0.85, 1.55]]) {
+    g.add(malha(new THREE.CylinderGeometry(0.015, 0.015, y, 5), metal, x, y / 2, -0.2));
+    const prato = malha(new THREE.CylinderGeometry(0.32, 0.32, 0.015, 18), ouro, x, y, -0.2);
+    prato.rotation.z = 0.15;
+    g.add(prato);
+  }
+  g.add(malha(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 12), toon(0x222222), 0, 0.5, -0.75));
+  return g;
+}
+
+function teclado() {
+  const g = new THREE.Group();
+  const teclas = textura(64, (c, w, h) => {
+    c.fillStyle = '#ffffff'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#222'; for (let x = 0; x < w; x += 4) c.fillRect(x, 0, 1, h);
+    for (let x = 2; x < w; x += 8) if ((x / 8) % 7 !== 2 && (x / 8) % 7 !== 6) c.fillRect(x, 0, 3, h * 0.6);
+  }, { largura: 128, suave: true });
+  g.add(malha(new THREE.BoxGeometry(1.4, 0.1, 0.4), toon(0x1b1b1b), 0, 0.9, 0));
+  const topo = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.22), new THREE.MeshBasicMaterial({ map: teclas }));
+  topo.rotation.x = -Math.PI / 2;
+  topo.position.set(0, 0.952, 0.06);
+  g.add(topo);
+  for (const x of [-0.5, 0.5]) {
+    const perna = malha(new THREE.BoxGeometry(0.05, 0.9, 0.05), toon(0x444444), x, 0.45, 0);
+    perna.rotation.z = x > 0 ? 0.3 : -0.3;
+    g.add(perna);
+  }
+  return g;
+}
+
+function guitarra(rnd) {
+  const g = new THREE.Group();
+  const cor = toon([0x2a9d8f, 0xe63946, 0xffb703, 0x1d3557][Math.floor(rnd() * 4)]);
+  const corpo = new THREE.Group();
+  corpo.add(malha(new THREE.SphereGeometry(0.28, 14, 10), cor, 0, 0, 0));
+  corpo.add(malha(new THREE.SphereGeometry(0.21, 14, 10), cor, 0, 0.3, 0));
+  corpo.children.forEach((c) => c.scale.z = 0.25);
+  corpo.add(malha(new THREE.BoxGeometry(0.07, 0.8, 0.05), toon(0x6b4226), 0, 0.75, 0));
+  corpo.add(malha(new THREE.BoxGeometry(0.12, 0.16, 0.05), toon(0x1b1b1b), 0, 1.2, 0));
+  corpo.position.y = 0.55;
+  corpo.rotation.z = 0.12;
+  g.add(corpo);
+  g.add(malha(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 5), toon(0x333333), 0, 0.3, -0.12));
+  return g;
+}
+
+function microfone() {
+  const g = new THREE.Group();
+  g.add(malha(new THREE.CylinderGeometry(0.2, 0.22, 0.04, 14), toon(0x222222), 0, 0.02, 0));
+  g.add(malha(new THREE.CylinderGeometry(0.02, 0.02, 1.5, 6), toon(0x555555), 0, 0.77, 0));
+  const mic = malha(new THREE.CapsuleGeometry(0.045, 0.12, 4, 8), toon(0x333333), 0, 1.55, 0.06);
+  mic.rotation.x = 0.6;
+  g.add(mic);
+  return g;
+}
+
+function fileiraCadeiras(rnd) {
+  const g = new THREE.Group();
+  const estofado = toon(0x6d597a), ferro = toon(0x333333);
+  for (let i = 0; i < 3; i++) {
+    const c = new THREE.Group();
+    c.add(malha(caixaArredondada(0.5, 0.08, 0.5, 0.03), estofado, 0, 0.45, 0));
+    c.add(malha(caixaArredondada(0.5, 0.5, 0.07, 0.03), estofado, 0, 0.75, -0.22));
+    for (const [x, z] of [[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2]]) c.add(malha(new THREE.CylinderGeometry(0.02, 0.02, 0.45, 4), ferro, x, 0.22, z));
+    c.position.x = (i - 1) * 0.6;
+    g.add(c);
+    if (rnd() < 0.35) {
+      const p = criarPessoa(rnd);
+      p.position.set(c.position.x, 0, 0.45);
+      p.scale.multiplyScalar(0.9);
+      g.add(p);
+      g.userData.animar = p.userData.animar;
+    }
+  }
+  return g;
+}
+
+function telao(texto) {
+  const g = new THREE.Group();
+  const tex = texturaTexto(texto, { largura: 512, altura: 288, fundo: '#1d2b4a', cor: '#ffffff', fonte: 'bold 64px "Trebuchet MS", sans-serif' });
+  const tela = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 3.6), new THREE.MeshBasicMaterial({ map: tex }));
+  tela.position.y = 6;
+  g.add(tela);
+  g.add(malha(new THREE.BoxGeometry(6.7, 3.9, 0.15), toon(0x111111), 0, 6, -0.1));
+  return g;
+}
+
+// ---------- Natal ----------
+
+function bonecoDeNeve() {
+  const g = new THREE.Group();
+  const neve = toon(0xffffff);
+  g.add(malha(new THREE.SphereGeometry(0.5, 16, 12), neve, 0, 0.45, 0));
+  g.add(malha(new THREE.SphereGeometry(0.36, 16, 12), neve, 0, 1.1, 0));
+  g.add(malha(new THREE.SphereGeometry(0.26, 16, 12), neve, 0, 1.6, 0));
+  const nariz = malha(new THREE.ConeGeometry(0.05, 0.25, 8), toon(0xf77f00), 0, 1.6, 0.32);
+  nariz.rotation.x = Math.PI / 2;
+  g.add(nariz);
+  for (const x of [-0.09, 0.09]) g.add(malha(new THREE.SphereGeometry(0.03, 6, 5), toon(0x111111), x, 1.68, 0.23));
+  for (const y of [1.0, 1.15, 1.3]) g.add(malha(new THREE.SphereGeometry(0.035, 6, 5), toon(0x111111), 0, y, 0.34));
+  g.add(malha(new THREE.TorusGeometry(0.24, 0.06, 6, 16), toon(0xc1121f), 0, 1.38, 0));
+  g.children[g.children.length - 1].rotation.x = Math.PI / 2;
+  g.add(malha(new THREE.CylinderGeometry(0.2, 0.22, 0.05, 14), toon(0x1b1b1b), 0, 1.82, 0));
+  g.add(malha(new THREE.CylinderGeometry(0.15, 0.15, 0.3, 14), toon(0x1b1b1b), 0, 1.98, 0));
+  for (const s of [-1, 1]) {
+    const braco = malha(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 4), toon(0x6b4226), s * 0.5, 1.2, 0);
+    braco.rotation.z = s * -1;
+    g.add(braco);
+  }
+  contornar(g, 0.012);
+  return g;
+}
+
+function bengala() {
+  const g = new THREE.Group();
+  const listras = textura(32, (c, w, h) => {
+    c.fillStyle = '#ffffff'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#d62828';
+    for (let i = -h; i < w + h; i += 12) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i + 6, 0); c.lineTo(i + 6 + h, h); c.lineTo(i + h, h); c.fill(); }
+  }, { repetir: true, suave: true });
+  listras.repeat.set(1, 6);
+  const mat = toon(0xffffff, { map: listras });
+  g.add(malha(new THREE.CylinderGeometry(0.1, 0.1, 2, 10), mat, 0, 1, 0));
+  const curva = malha(new THREE.TorusGeometry(0.3, 0.1, 8, 14, Math.PI), mat, 0.3, 2, 0);
+  g.add(curva);
+  return g;
+}
+
+function casinhaNeve(rnd) {
+  const g = casinha(rnd);
+  const telhado = g.children[1];
+  const neve = malha(new THREE.CylinderGeometry(0.01, telhado.geometry.parameters.radiusBottom * 1.04, 0.5, 4, 1), toon(0xffffff), 0, telhado.position.y + 0.55, 0);
+  neve.rotation.y = Math.PI / 4;
+  neve.scale.z = 0.75;
+  g.add(neve);
+  const cores = [0xffd60a, 0xff4d6d, 0x4cc9f0, 0x52b788];
+  for (let i = 0; i < 9; i++) g.add(malha(new THREE.SphereGeometry(0.06, 6, 4), brilho(cores[i % 4], 1.3), -1.4 + i * 0.35, telhado.position.y - 0.72, 1.52));
+  return g;
+}
+
+function pilhaPresentes(rnd) {
+  const g = new THREE.Group();
+  const cores = [0xd62828, 0x2d6a4f, 0xffd166, 0x4cc9f0, 0xb8a1ff];
+  let y = 0;
+  for (let i = 0; i < 3; i++) {
+    const s = 0.6 - i * 0.15;
+    g.add(malha(caixaArredondada(s, s, s, 0.04), toon(cores[Math.floor(rnd() * cores.length)]), (rnd() - 0.5) * 0.15, y + s / 2, 0));
+    g.add(malha(new THREE.BoxGeometry(s * 1.02, s * 1.02, 0.08), toon(0xfff3b0), 0, y + s / 2, 0));
+    y += s;
+  }
+  return g;
+}
+
+function estrelaNatal(tamanho = 1) {
+  const forma = new THREE.Shape();
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 ? 0.4 : 1;
+    const a = (i / 10) * Math.PI * 2 + Math.PI / 2;
+    if (i === 0) forma.moveTo(Math.cos(a) * r, Math.sin(a) * r); else forma.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  const geo = new THREE.ExtrudeGeometry(forma, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.06, bevelSegments: 2 });
+  geo.center();
+  const m = malha(geo, brilho(0xffd60a, 0.9));
+  m.scale.setScalar(tamanho);
+  return m;
+}
+
+function poste() {
+  const g = new THREE.Group();
+  g.add(malha(new THREE.CylinderGeometry(0.06, 0.08, 3, 8), toon(0x1b1b1b), 0, 1.5, 0));
+  g.add(malha(new THREE.SphereGeometry(0.22, 12, 10), brilho(0xfff1c1, 1.4), 0, 3.15, 0));
+  const laco = malha(new THREE.TorusGeometry(0.12, 0.04, 5, 10), toon(0xc1121f), 0, 2.6, 0.08);
+  laco.scale.x = 1.8;
+  g.add(laco);
+  return g;
+}
+
+function neveCaindo(zMin, zMax) {
+  const n = 2500;
+  const pos = new Float32Array(n * 3);
+  const rnd = aleatorio(31);
+  for (let i = 0; i < n; i++) { pos[i * 3] = (rnd() - 0.5) * 50; pos[i * 3 + 1] = rnd() * 25 - 3; pos[i * 3 + 2] = zMax + 10 - rnd() * (zMax - zMin + 30); }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const pontos = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.12, transparent: true, opacity: 0.9 }));
+  let antes = 0;
+  pontos.userData.animar = (t) => {
+    const dt = Math.min(Math.max(t - antes, 0), 0.1);
+    antes = t;
+    const a = geo.attributes.position.array;
+    for (let i = 0; i < n; i++) {
+      a[i * 3 + 1] -= dt * (1.2 + (i % 5) * 0.2);
+      a[i * 3] += Math.sin(t + i) * dt * 0.3;
+      if (a[i * 3 + 1] < -3) a[i * 3 + 1] = 22;
+    }
+    geo.attributes.position.needsUpdate = true;
+  };
+  return pontos;
+}
+
 export const TEMAS = {
   familia: {
     mundo: 'Família',
@@ -580,31 +787,83 @@ export const TEMAS = {
 
   igreja: {
     mundo: 'Igreja',
-    ceu: 0x3b2a4a, neblina: [0x3b2a4a, 30, 90],
-    luz: { ceu: 0xffe8c7, chao: 0x5a4636, forca: 1.4, sol: 0xffd9a0, forcaSol: 1.8 },
-    chao: ['pedraClara', 'marmore'], margem: ['pedraClara', 'pedraClara'], plataforma: ['pedraClara', 'marmore'],
-    baixo: { cor: 0x2b1d3a, opacidade: 1 },
+    ceu: 0x2a1f3d, neblina: [0x2a1f3d, 30, 90],
+    luz: { ceu: 0xffeedd, chao: 0x4a3a5a, forca: 1.45, sol: 0xffe2b8, forcaSol: 1.8 },
+    chao: ['palco', 'palco'], margem: ['carpete', 'carpete'], plataforma: ['palco', 'palco'],
+    baixo: { cor: 0x1b1430, opacidade: 1 },
     flor: 0xf72585, musica: 'igreja',
     enfeite(rnd, dist) {
       const r = rnd();
-      if (dist < 2.5 && r < 0.4) return vela();
-      if (r < 0.55) { const b = banco(3 + rnd()); b.rotation.y = Math.PI / 2; return b; }
-      if (r < 0.7) return criarPessoa(rnd, { roupa: 0x7b2cbf, vestido: true });
-      if (r < 0.85) { const n = notaMusical([0xffd166, 0xf72585, 0x4cc9f0][Math.floor(rnd() * 3)]); n.position.y = 2 + rnd() * 2; const base = new THREE.Group(); base.add(n); const f = rnd() * 6; base.userData.animar = (t) => { n.position.y = 2.5 + Math.sin(t * 2 + f) * 0.4; n.rotation.y = t + f; }; return base; }
-      return arbusto(rnd, 0x40916c, true);
+      if (dist < 3 && r < 0.18) return bateria();
+      if (dist < 3 && r < 0.32) return teclado();
+      if (dist < 3 && r < 0.46) return guitarra(rnd);
+      if (dist < 3 && r < 0.56) return microfone();
+      if (dist < 3 && r < 0.66) return caixaDeSom(1.4 + rnd(), 0xffd166);
+      if (r < 0.8) { const f = fileiraCadeiras(rnd); f.rotation.y = Math.PI / 2; return f; }
+      if (r < 0.9) return criarPessoa(rnd);
+      const n = notaMusical([0xffd166, 0xf72585, 0x4cc9f0][Math.floor(rnd() * 3)]);
+      const base = new THREE.Group(); base.add(n);
+      const f = rnd() * 6;
+      base.userData.animar = (t) => { n.position.y = 2.5 + Math.sin(t * 2 + f) * 0.4; n.rotation.y = t + f; };
+      return base;
     },
     beirada: null,
     fundo(raiz, zMin, zMax, rnd) {
-      paredes(raiz, zMin, zMax, { cor: 0xe9dcc9, altura: 30, distancia: 18, enfeite: () => vitral(rnd) });
-      for (let z = zMax; z > zMin - 30; z -= 9) for (const lado of [-1, 1]) {
-        const c = malha(new THREE.CylinderGeometry(0.6, 0.7, 20, 12), toon(0xf1e3d3), lado * 15, 2, z);
-        raiz.add(c);
+      const textos = [['Ensaio da', 'Banda'], ['Bem-vindos!'], ['Louvor', '19h30'], ['Culto de', 'Domingo']];
+      let i = 0;
+      paredes(raiz, zMin, zMax, { cor: 0x3d3150, altura: 30, distancia: 18, enfeite: () => telao(textos[i++ % textos.length]) });
+      for (let z = zMax - 4; z > zMin - 30; z -= 14) {
+        for (const [cor, x] of [[0xffd166, -9], [0x4cc9f0, 9], [0xf72585, 0]]) {
+          const h = holofote(cor);
+          h.position.set(x, 4, z);
+          raiz.add(h);
+        }
       }
-      for (let i = 0; i < 6; i++) {
-        const luz = new THREE.PointLight(0xffc37a, 30, 30);
-        luz.position.set((i % 2 ? -1 : 1) * 10, 6, zMax - (i / 6) * (zMax - zMin));
+      for (let k = 0; k < 6; k++) {
+        const luz = new THREE.PointLight(0xffd6a5, 30, 30);
+        luz.position.set((k % 2 ? -1 : 1) * 10, 6, zMax - (k / 6) * (zMax - zMin));
         raiz.add(luz);
       }
+    },
+  },
+
+  natal: {
+    mundo: 'Natal',
+    ceu: 0x1b2a4e, neblina: [0x2b3d66, 30, 100],
+    luz: { ceu: 0xdbe9ff, chao: 0x5a6a8a, forca: 1.5, sol: 0xcfe0ff, forcaSol: 1.7 },
+    chao: ['neveLado', 'neve'], margem: ['neveLado', 'neve'], plataforma: ['gelo', 'gelo'],
+    baixo: { cor: 0x9ccbe8, opacidade: 1 },
+    flor: 0xd62828, musica: 'natal',
+    enfeite(rnd, dist) {
+      const r = rnd();
+      if (r < 0.3) return criarPinheiro(3 + rnd() * 3, { luzes: true, estrela: rnd() < 0.6, cor: 0x1b5e3a });
+      if (r < 0.4 && dist > 4) return casinhaNeve(rnd);
+      if (r < 0.5) return bonecoDeNeve();
+      if (r < 0.6) return bengala();
+      if (r < 0.72) return pilhaPresentes(rnd);
+      if (r < 0.8 && dist < 3) return poste();
+      if (r < 0.88 && dist < 4) return criarPessoa(rnd, { roupa: [0xc1121f, 0x2d6a4f, 0xffffff][Math.floor(rnd() * 3)] });
+      return criarPinheiro(2 + rnd() * 2, { cor: 0x2d6a4f });
+    },
+    beirada: null,
+    fundo(raiz, zMin, zMax, rnd) {
+      morros(raiz, zMin, zMax, rnd, [0xf4f9ff, 0xe3eefc, 0xd6e6f7]);
+      estrelas(raiz);
+      raiz.add(neveCaindo(zMin, zMax));
+      const lua = new THREE.Mesh(new THREE.CircleGeometry(6, 32), new THREE.MeshBasicMaterial({ color: 0xfff6d5, fog: false }));
+      lua.position.set(-30, 40, zMin - 100);
+      raiz.add(lua);
+      for (let z = zMax - 20; z > zMin; z -= 40) {
+        const e = estrelaNatal(0.8);
+        e.position.set((z / 40) % 2 ? -6 : 6, 7, z);
+        const g = new THREE.Group(); g.add(e);
+        g.userData.animar = (t) => { e.rotation.y = t; };
+        raiz.add(g);
+      }
+      // a árvore de Natal gigante do fim da fase
+      const arvore = criarPinheiro(16, { luzes: true, estrela: true, cor: 0x1b5e3a });
+      arvore.position.set(0, -2, zMin - 18);
+      raiz.add(arvore);
     },
   },
 

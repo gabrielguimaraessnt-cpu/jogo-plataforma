@@ -1,11 +1,11 @@
-// Mundo IGREJA — Fase 2: Ensaio do Coral
+// Mundo IGREJA — Fase 2: Ensaio da Banda (louvor)
 import { Fase } from './construtor.js';
 
-const f = new Fase({ numero: 2, nome: 'Ensaio do Coral', tema: 'igreja',
-  descricao: 'Hoje tem ensaio! Suba nos tubos do órgão e não perca o tom.' });
+const f = new Fase({ numero: 2, nome: 'Ensaio da Banda', tema: 'igreja',
+  descricao: 'Hoje tem ensaio do louvor! Bateria, teclado, telão e o palco que sobe e desce.' });
 
 f.reto(26)
-  .placa(-3.4, 3, ['Ensaio do', 'Coral'])
+  .placa(-3.4, 3, ['Ensaio da', 'Banda'])
   .linha(0, 3, 0, 12, 4)
   .caixa('comum', -2, 7).caixa('comum', 2, 7)
   .caixa('mola', 0, 14).caixaNoAr('comum', 0, 14, 5)

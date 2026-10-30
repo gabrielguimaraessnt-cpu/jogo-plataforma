@@ -3,7 +3,7 @@
 - Responder ao usuário em português. O usuário não é programador: explicar em linguagem simples e fazer
   as etapas técnicas por ele.
 - Jogo-presente para a noiva do usuário (Bia / Beatriz Pinheiro). Tudo personalizado: fases ligadas à vida
-  dela (família, igreja, hobbies, antigo emprego, casamento em 17/10/2027). Manter o tom carinhoso.
+  dela (família, igreja evangélica — banda/louvor, não coral —, hobbies, antigo emprego, Natal, casamento em 17/10/2027). Manter o tom carinhoso.
 - O vilão "XôMaq" é sátira de uma loja real: nunca usar o nome real nem o logo real no jogo.
 - Jogo estático em Three.js (sem build): `index.html` + `src/*.js` (módulos ES) + `vendor/three` (0.169.0).
 - Publicação: Vercel ligada à branch `main` (site estático, sem comando de build).

@@ -3,18 +3,19 @@
 Jogo de plataforma 3D em corredor, feito de presente para a Bia (Beatriz Pinheiro). Roda no navegador,
 no computador e no celular.
 
-A Bia atravessa 5 mundos da vida dela. Ela abre presentes, junta flores, foge das goiabas (é alérgica!)
+A Bia atravessa 6 mundos da vida dela. Ela abre presentes, junta flores, foge das goiabas (é alérgica!)
 e enfrenta a turma da **XôMaq** (sátira da antiga loja). No fim, chega ao altar no dia **17/10/2027**.
 
 | Mundo | Fase | Tema |
 |---|---|---|
 | 🏡 Família | 1. Quintal da Família | casinhas, pinheiros, a família torcendo, mesa com bolo e pudim |
-| ⛪ Igreja | 2. Ensaio do Coral | vitrais, bancos, velas, notas musicais, tubos de órgão que sobem e descem |
+| ⛪ Igreja | 2. Ensaio da Banda | palco, bateria, teclado, guitarras, telões do louvor, palco que sobe e desce |
 | 🎨 Hobbies | 3. Ateliê de Costura | lápis, alfinetes, botões e carretéis gigantes, manequins |
 | 🎨 Hobbies | 4. Rodízio de Sushi | sushi, estrogonofe e pudim gigantes, esteira de pratos, lanternas |
 | 🎨 Hobbies | 5. Aulão de Fit Dance | pista neon, caixas de som, plataformas no ritmo da música eletrônica |
 | 🧵 XôMaq | 6. A Loja XôMaq | prateleiras, metas, hora extra e o chefão **Gerente** |
-| 💍 Casamento | 7. O Grande Dia | tapete vermelho, convidados, pinheiros com luzes e a cena final no altar |
+| 🎄 Natal | 7. Noite de Natal | neve caindo, pinheiros com pisca-pisca, bonecos de neve, bengalas doces, árvore gigante |
+| 💍 Casamento | 8. O Grande Dia | tapete vermelho, convidados, pinheiros com luzes e a cena final no altar |
 
 ## Itens e perigos
 

@@ -1,7 +1,7 @@
-// Mundo CASAMENTO — Fase 7: O Grande Dia (17/10/2027)
+// Mundo CASAMENTO — Fase 8: O Grande Dia (17/10/2027)
 import { Fase } from './construtor.js';
 
-const f = new Fase({ numero: 7, nome: 'O Grande Dia', tema: 'casamento',
+const f = new Fase({ numero: 8, nome: 'O Grande Dia', tema: 'casamento',
   descricao: '17/10/2027. Todo mundo esperando. Siga o tapete até o altar!' });
 
 f.reto(26)
