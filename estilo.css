@@ -1,10 +1,12 @@
 :root {
-  --fundo: #0f1d14;
-  --painel: rgba(20, 32, 24, 0.92);
-  --texto: #fdf6e3;
-  --destaque: #ffb703;
-  --destaque-escuro: #fb8500;
-  --suave: #b8c4b0;
+  --fundo: #2b1530;
+  --painel: rgba(255, 248, 244, 0.95);
+  --texto: #4a2340;
+  --destaque: #e0457b;
+  --destaque-claro: #ff8fab;
+  --verde: #2d6a4f;
+  --suave: #8a6a7e;
+  --borda: #f7c6d6;
 }
 
 * { box-sizing: border-box; }
@@ -15,7 +17,7 @@ html, body {
   overflow: hidden;
   background: var(--fundo);
   color: var(--texto);
-  font-family: "Trebuchet MS", system-ui, sans-serif;
+  font-family: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
@@ -28,77 +30,109 @@ html, body {
 /* HUD */
 #hud {
   position: fixed; top: 12px; left: 12px; right: 12px;
-  display: flex; gap: 10px; flex-wrap: wrap; pointer-events: none;
-  font-size: 20px; text-shadow: 0 2px 0 #000, 0 0 6px #000;
+  display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none;
+  font-size: 20px; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.5);
 }
-.hud-item { background: rgba(0,0,0,.35); padding: 4px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
+.hud-item { background: rgba(74, 35, 64, .55); padding: 2px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(4px); }
 .hud-tempo { margin-left: auto; }
-.icone-caju {
-  width: 18px; height: 20px; display: inline-block; border-radius: 50% 50% 45% 45%;
-  background: radial-gradient(circle at 35% 35%, #ffe066, #ff7b00 70%);
-  position: relative;
+.icone-flor { width: 18px; height: 18px; display: inline-block; border-radius: 50%; background: radial-gradient(circle, #ffd166 25%, #e63950 30%); }
+
+#chefe-barra {
+  position: fixed; top: 58px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 800; font-size: 18px;
+  background: rgba(29, 53, 87, .85); padding: 4px 14px; border-radius: 20px; pointer-events: none;
 }
-.icone-caju::before {
-  content: ""; position: absolute; width: 12px; height: 7px; left: 3px; top: -6px;
-  background: #8a7a5a; border-radius: 50% 50% 40% 40%;
-}
+#chefe-vidas span { display: inline-block; width: 26px; height: 12px; margin: 0 2px; border-radius: 6px; background: #d62828; }
+#chefe-vidas span.vazio { background: rgba(255,255,255,.2); }
 
 #aviso {
-  position: fixed; top: 28%; left: 0; right: 0; text-align: center; pointer-events: none;
-  font-size: 42px; font-weight: bold; color: var(--destaque);
-  text-shadow: 0 3px 0 #6a2c00, 0 0 12px #000;
-  animation: pulsar .6s ease-out;
+  position: fixed; top: 26%; left: 0; right: 0; text-align: center; pointer-events: none;
+  font-size: 44px; font-weight: 800; color: #fff;
+  text-shadow: 0 3px 0 var(--destaque), 0 0 14px rgba(0,0,0,.4);
+  animation: pulsar .6s ease-out; padding: 0 16px;
 }
 @keyframes pulsar { from { transform: scale(1.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 /* Telas */
 .tela {
   position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(ellipse at center, rgba(0,0,0,.25), rgba(0,0,0,.65));
+  background: radial-gradient(ellipse at center, rgba(43,21,48,.15), rgba(43,21,48,.6));
   padding: 16px;
 }
+.tela-transparente { background: none; align-items: flex-end; }
 .painel {
-  background: var(--painel); border: 2px solid #3a5a40; border-radius: 18px;
-  padding: 24px 28px; width: min(440px, 100%); max-height: 100%; overflow-y: auto;
+  background: var(--painel); border: 3px solid var(--borda); border-radius: 22px;
+  padding: 22px 26px; width: min(440px, 100%); max-height: 100%; overflow-y: auto;
   display: flex; flex-direction: column; gap: 10px; text-align: center;
-  box-shadow: 0 12px 40px rgba(0,0,0,.5);
+  box-shadow: 0 14px 40px rgba(74, 35, 64, .35);
 }
-h1 { margin: 0 0 12px; font-size: 64px; color: var(--destaque); text-shadow: 0 4px 0 #6a2c00; line-height: 1; }
-h1 small { display: block; font-size: 20px; color: var(--texto); text-shadow: none; margin-top: 6px; }
-h2 { margin: 0 0 6px; color: var(--destaque); }
+.painel-menu { background: rgba(255, 248, 244, .88); }
+.painel-largo { width: min(760px, 100%); }
+.painel-roupas { width: min(560px, 100%); margin-bottom: 2vh; padding: 14px 18px; }
+h1 { margin: 0; font-size: 92px; line-height: .85; color: var(--destaque); text-shadow: 0 5px 0 #fff, 0 7px 0 var(--borda); }
+h1 small { display: block; font-size: 24px; color: var(--texto); text-shadow: none; line-height: 1.2; letter-spacing: 1px; }
+.pinheirinho { font-size: 48px; vertical-align: top; margin-left: 4px; }
+h2 { margin: 0 0 4px; color: var(--destaque); font-size: 30px; line-height: 1.1; }
+.contagem { margin: 4px 0 8px; color: var(--verde); font-weight: 700; font-size: 18px; }
+.faixa { background: var(--destaque); color: #fff; font-weight: 800; border-radius: 12px; padding: 6px 10px; font-size: 20px; animation: pulsar .8s ease-out; }
 
-button {
-  font: inherit; font-size: 18px; color: var(--texto); background: #2d4a35;
-  border: 2px solid #4f7a58; border-radius: 12px; padding: 10px 16px; cursor: pointer;
+button, select {
+  font: inherit; font-size: 19px; font-weight: 700; color: var(--texto); background: #fff;
+  border: 3px solid var(--borda); border-radius: 14px; padding: 8px 16px; cursor: pointer;
 }
-button:hover, button:focus-visible { background: #3b6146; outline: none; }
-button.principal { background: var(--destaque-escuro); border-color: var(--destaque); color: #1b1000; font-weight: bold; }
-button.principal:hover, button.principal:focus-visible { background: var(--destaque); }
+button:hover, button:focus-visible { background: #fff0f5; outline: none; border-color: var(--destaque-claro); }
+button.principal { background: var(--destaque); border-color: #c2185b; color: #fff; }
+button.principal:hover, button.principal:focus-visible { background: #f25c8f; }
+button:disabled { opacity: .45; cursor: not-allowed; }
 
-.dica { color: var(--suave); font-size: 14px; margin: 4px 0; }
-.controles { margin: 0 auto; border-spacing: 8px 6px; text-align: left; }
-kbd { background: #1b2a1f; border: 1px solid #4f7a58; border-radius: 5px; padding: 1px 6px; margin-right: 3px; font-size: 14px; }
+.dica { color: var(--suave); font-size: 15px; margin: 2px 0; }
+.lista-dicas { text-align: left; padding-left: 4px; list-style: none; line-height: 1.5; }
+.controles { margin: 0 auto; border-spacing: 8px 4px; text-align: left; }
+kbd { background: #fff0f5; border: 1px solid var(--borda); border-radius: 6px; padding: 0 6px; margin-right: 3px; font-size: 14px; }
 
-.resumo { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; text-align: left; font-size: 18px; }
+.resumo { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; text-align: left; font-size: 19px; }
 .resumo b { color: var(--destaque); text-align: right; }
 
 #form-recorde { display: flex; gap: 8px; }
 #form-recorde input {
-  flex: 1; min-width: 0; font: inherit; font-size: 18px; padding: 8px 12px; border-radius: 10px;
-  border: 2px solid #4f7a58; background: #12201a; color: var(--texto);
+  flex: 1; min-width: 0; font: inherit; font-size: 18px; padding: 6px 12px; border-radius: 12px;
+  border: 3px solid var(--borda); background: #fff; color: var(--texto);
 }
 
 .lista-recordes ol { margin: 0; padding: 0 0 0 28px; text-align: left; }
-.lista-recordes li { padding: 3px 0; display: flex; justify-content: space-between; gap: 8px; }
-.lista-recordes li.meu { color: var(--destaque); font-weight: bold; }
+.lista-recordes li { padding: 2px 0; display: flex; justify-content: space-between; gap: 8px; }
+.lista-recordes li.meu { color: var(--destaque); font-weight: 800; }
+
+/* Mapa de mundos */
+.mapa { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; text-align: left; }
+.mundo { background: #fff; border: 3px solid var(--borda); border-radius: 16px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.mundo h3 { margin: 0; font-size: 18px; color: var(--texto); }
+.fase-botao { font-size: 15px; padding: 6px 8px; text-align: left; line-height: 1.15; }
+.fase-botao small { display: block; font-weight: 500; color: var(--suave); font-size: 13px; }
+.fase-botao.trancada { background: #f3eef0; color: #b9a8b3; }
+
+/* Guarda-roupa */
+.lista-roupas { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.roupa { width: 140px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 15px; }
+.roupa .amostra { width: 56px; height: 56px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--borda); }
+.roupa.escolhida { border-color: var(--destaque); background: #fff0f5; }
+
+/* Casamento */
+.painel-casamento { background: rgba(255, 248, 250, .9); width: min(520px, 100%); margin-bottom: 2vh; gap: 4px; padding: 14px 22px; }
+.painel-casamento h1 { font-size: 56px; }
+.data-casamento { margin: 0; font-size: 20px; font-weight: 700; color: var(--verde); letter-spacing: 1px; }
+#mensagem-final { font-size: 20px; margin: 4px 0; }
+#confete { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+#confete i { position: absolute; top: -20px; width: 10px; height: 14px; border-radius: 3px; animation: cair linear forwards; }
+@keyframes cair { to { transform: translateY(110vh) rotate(720deg); } }
 
 /* Toque */
 #toque { position: fixed; inset: 0; pointer-events: none; }
 #toque button {
   pointer-events: auto; position: absolute; width: 64px; height: 64px; border-radius: 50%;
-  font-size: 26px; background: rgba(255,255,255,.15); border: 2px solid rgba(255,255,255,.35); padding: 0;
+  font-size: 26px; background: rgba(255,255,255,.25); border: 2px solid rgba(255,255,255,.55); padding: 0; color: #fff;
 }
-#toque button.ativo { background: rgba(255,183,3,.5); }
+#toque button.ativo { background: rgba(224,69,123,.6); }
 .direcional { position: absolute; left: 20px; bottom: 20px; width: 200px; height: 200px; }
 .direcional [data-tecla="cima"] { left: 68px; top: 0; }
 .direcional [data-tecla="esquerda"] { left: 0; top: 68px; }
@@ -109,7 +143,9 @@ kbd { background: #1b2a1f; border: 1px solid #4f7a58; border-radius: 5px; paddin
 .acoes [data-tecla="pular"] { right: 0; top: 0; width: 84px !important; height: 84px !important; }
 #toque .botao-pausa { right: 16px; top: 60px; width: 48px; height: 48px; font-size: 18px; }
 
-@media (max-width: 520px) {
-  #hud { font-size: 16px; gap: 6px; }
-  h1 { font-size: 48px; }
+@media (max-width: 520px), (max-height: 520px) {
+  #hud { font-size: 15px; gap: 5px; }
+  h1 { font-size: 64px; }
+  .painel { padding: 14px 16px; gap: 7px; }
+  button { font-size: 16px; padding: 6px 12px; }
 }

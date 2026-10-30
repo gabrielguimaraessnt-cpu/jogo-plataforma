@@ -1,7 +1,9 @@
 // Física e controle do personagem. A posição (pos) é o ponto entre os pés.
 import * as THREE from 'three';
 import { AJUSTES } from './config.js';
-import { criarZuca, animarZuca, criarSombraRedonda } from './modelos.js';
+import { criarBia, animarBia } from './modelos/bia.js';
+import { criarPudim } from './modelos/itens.js';
+import { criarSombraRedonda } from './sombra.js';
 import { som } from './som.js';
 
 const RAIO = 0.34;     // metade da largura da "caixa de colisão"
@@ -11,7 +13,7 @@ const TEMPO_COIOTE = 0.1;    // ainda dá para pular logo depois de sair da beir
 const MEMORIA_PULO = 0.12;   // apertar pulo um pouco antes de tocar o chão também vale
 
 export class Jogador {
-  constructor(cena, externo = null) {
+  constructor(cena, { roupa = 'florido', externo = null } = {}) {
     this.cena = cena;
     this.pos = new THREE.Vector3();
     this.vel = new THREE.Vector3();
@@ -27,7 +29,7 @@ export class Jogador {
     this.tempo = 0;
 
     this.modelo = new THREE.Group();
-    this.visual = externo?.cena ?? criarZuca();
+    this.visual = externo?.cena ?? criarBia(roupa);
     this.modelo.add(this.visual);
     this.externo = externo;
     if (externo) {
@@ -38,6 +40,24 @@ export class Jogador {
     cena.add(this.modelo);
     this.sombra = criarSombraRedonda();
     cena.add(this.sombra);
+    this.invencivel = 0;
+    this.companheiros = [];
+  }
+
+  // Pudins que acompanham a Bia (cada um aguenta um golpe).
+  definirPudins(n) {
+    while (this.companheiros.length < n) {
+      const p = criarPudim();
+      p.scale.setScalar(0.7);
+      this.cena.add(p);
+      this.companheiros.push(p);
+    }
+    while (this.companheiros.length > n) this.cena.remove(this.companheiros.pop());
+  }
+
+  remover() {
+    this.cena.remove(this.modelo, this.sombra);
+    this.definirPudins(0);
   }
 
   get girando() { return this.giro > 0; }
@@ -51,6 +71,13 @@ export class Jogador {
     this.modelo.visible = true;
     this.modelo.scale.setScalar(1);
     this.modelo.rotation.set(0, this.direcao, 0);
+    this.invencivel = 1.2;
+  }
+
+  // Levou um golpe com pudim: fica piscando e invencível um pouquinho.
+  protegido() {
+    this.invencivel = 1.5;
+    this.quicar(7);
   }
 
   morrer() {
@@ -70,6 +97,7 @@ export class Jogador {
 
   passo(dt, entrada, mundo) {
     this.tempo += dt;
+    if (this.invencivel > 0) this.invencivel -= dt;
     if (this.morto) {
       this.tempoMorto += dt;
       this.vel.y -= AJUSTES.gravidade * dt;
@@ -171,7 +199,14 @@ export class Jogador {
     }
     const estado = { noChao: this.noChao, velocidadeChao: Math.hypot(this.vel.x, this.vel.z), girando: this.girando, vy: this.vel.y };
     if (this.mixer) this.animarExterno(dt, estado);
-    else animarZuca(this.visual, estado, this.tempo);
+    else animarBia(this.visual, estado, this.tempo, dt);
+    this.modelo.visible = this.morto || this.invencivel <= 0 || Math.floor(this.invencivel * 12) % 2 === 0;
+    this.companheiros.forEach((p, i) => {
+      const a = this.tempo * 2.5 + i * Math.PI;
+      const alvo = new THREE.Vector3(this.pos.x + Math.cos(a) * 0.9, this.pos.y + 1.5 + Math.sin(this.tempo * 3 + i) * 0.15, this.pos.z + Math.sin(a) * 0.9);
+      p.position.lerp(alvo, Math.min(dt * 8, 1));
+      p.rotation.y = -a;
+    });
 
     const chao = mundo.alturaChao(this.pos.x, this.pos.y, this.pos.z);
     this.sombra.position.set(this.pos.x, chao + 0.02, this.pos.z);

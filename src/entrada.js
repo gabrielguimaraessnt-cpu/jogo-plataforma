@@ -37,8 +37,7 @@ addEventListener('blur', () => seguradas.clear());
 export function iniciarToque() {
   const area = document.getElementById('toque');
   const ehToque = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
-  if (!ehToque) return;
-  area.classList.remove('oculto');
+  if (!ehToque) return false;
   for (const botao of area.querySelectorAll('[data-tecla]')) {
     const nome = botao.dataset.tecla;
     const liga = (e) => { e.preventDefault(); toque.add(nome); apertar(nome); botao.classList.add('ativo'); };
@@ -48,6 +47,7 @@ export function iniciarToque() {
     botao.addEventListener('pointercancel', desliga);
     botao.addEventListener('pointerleave', desliga);
   }
+  return true;
 }
 
 // Controle (Xbox/PlayStation): A pula, X/Quadrado gira, Start pausa.

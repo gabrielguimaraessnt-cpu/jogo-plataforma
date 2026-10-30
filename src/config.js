@@ -4,6 +4,26 @@
 export const SUPABASE_URL = 'https://czaomtjzomclqnkkfgkz.supabase.co';
 export const SUPABASE_CHAVE = 'sb_publishable_TX4cQaPAQQlZcYtXCBl9Lw_oHj2DlVY';
 
+// Dados pessoais usados nas telas do jogo.
+export const HISTORIA = {
+  heroina: 'Bia',
+  nomeCompleto: 'Beatriz Pinheiro',
+  aniversario: { dia: 8, mes: 11, anoNascimento: 1996 },
+  casamento: new Date(2027, 9, 17), // 17/10/2027 (mês começa em 0)
+  noivo: '',                        // nome do noivo para a cena final (deixe vazio para não mostrar)
+  mensagemFinal: 'E essa é só a primeira fase da nossa história.',
+};
+
+// O vilão: sátira da antiga loja. Cores e nomes num lugar só, para trocar fácil.
+export const VILAO = {
+  nome: 'XôMaq',
+  slogan: 'Bata a meta!',
+  corPrincipal: 0xd62828,
+  corSecundaria: 0x1d3557,
+  corDetalhe: 0xffd60a,
+  css: { principal: '#d62828', secundaria: '#1d3557', detalhe: '#ffd60a' },
+};
+
 // Ajustes de jogabilidade. Mude aqui para deixar o jogo mais fácil ou mais difícil.
 export const AJUSTES = {
   vidasIniciais: 4,
@@ -16,5 +36,6 @@ export const AJUSTES = {
   pulinhoMola: 17,
   duracaoGiro: 0.45,
   recargaGiro: 0.25,
-  frutasPorVida: 100,
+  floresPorVida: 100,
+  maxPudins: 2,           // quantos golpes o pudim protetor aguenta
 };

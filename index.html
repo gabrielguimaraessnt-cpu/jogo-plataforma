@@ -3,8 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Zuca e a Floresta do Caju</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌰</text></svg>">
+  <title>As Aventuras da Bia</title>
+  <meta name="description" content="Jogo de plataforma 3D feito para a Bia.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌲</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilo.css">
   <script type="importmap">
     { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
@@ -15,20 +18,43 @@
 
   <!-- HUD durante a fase -->
   <div id="hud" class="oculto">
-    <div class="hud-item"><span class="icone-caju"></span><b id="hud-frutas">0</b></div>
-    <div class="hud-item">❤ <b id="hud-vidas">3</b></div>
-    <div class="hud-item">📦 <b id="hud-caixas">0/0</b></div>
+    <div class="hud-item"><span class="icone-flor"></span><b id="hud-flores">0</b></div>
+    <div class="hud-item">❤️ <b id="hud-vidas">3</b></div>
+    <div class="hud-item" id="hud-pudim-caixa">🍮 <b id="hud-pudins">0</b></div>
+    <div class="hud-item">🎁 <b id="hud-caixas">0/0</b></div>
+    <div class="hud-item oculto" id="hud-alianca">💍</div>
     <div class="hud-item hud-tempo">⏱ <b id="hud-tempo">0:00.0</b></div>
   </div>
+  <div id="chefe-barra" class="oculto"><span>Gerente</span><div id="chefe-vidas"></div></div>
   <div id="aviso" class="oculto"></div>
 
-  <!-- Telas -->
+  <!-- Menu principal -->
   <div id="tela-menu" class="tela">
-    <div class="painel">
-      <h1>Zuca<small>e a Floresta do Caju</small></h1>
-      <button data-acao="jogar" class="principal">Jogar</button>
+    <div class="painel painel-menu">
+      <div id="faixa-aniversario" class="faixa oculto"></div>
+      <h1><small>As Aventuras da</small>Bia<span class="pinheirinho">🌲</span></h1>
+      <p id="contagem" class="contagem"></p>
+      <button data-acao="mapa" class="principal">Jogar</button>
+      <button data-acao="roupas">Guarda-roupa</button>
       <button data-acao="recordes">Recordes online</button>
       <button data-acao="controles">Controles</button>
+    </div>
+  </div>
+
+  <div id="tela-mapa" class="tela oculto">
+    <div class="painel painel-largo">
+      <h2>Escolha a fase</h2>
+      <div id="mapa" class="mapa"></div>
+      <p class="dica" id="mapa-resumo"></p>
+      <button data-acao="voltar">Voltar</button>
+    </div>
+  </div>
+
+  <div id="tela-roupas" class="tela tela-transparente oculto">
+    <div class="painel painel-roupas">
+      <h2>Guarda-roupa</h2>
+      <div id="lista-roupas" class="lista-roupas"></div>
+      <button data-acao="voltar" class="principal">Pronto</button>
     </div>
   </div>
 
@@ -38,12 +64,17 @@
       <table class="controles">
         <tr><td>Andar</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou setas</td></tr>
         <tr><td>Pular</td><td><kbd>Espaço</kbd></td></tr>
-        <tr><td>Girar (ataque)</td><td><kbd>J</kbd> ou <kbd>Shift</kbd></td></tr>
+        <tr><td>Giro do Fit Dance</td><td><kbd>J</kbd> ou <kbd>Shift</kbd></td></tr>
         <tr><td>Pausar</td><td><kbd>Esc</kbd> ou <kbd>P</kbd></td></tr>
         <tr><td>Som</td><td><kbd>M</kbd></td></tr>
       </table>
-      <p class="dica">Pule em cima das caixas ou gire perto delas para quebrar. Caixa verde é mola, azul é checkpoint,
-        vermelha explode (afaste-se!) e a de metal não quebra. Cada 100 cajus valem uma vida.</p>
+      <ul class="dica lista-dicas">
+        <li>🎁 Pule em cima dos presentes ou gire perto deles para abrir.</li>
+        <li>🔊 Caixa de som é trampolim. 🌲 Caixa do pinheiro é checkpoint.</li>
+        <li>🍈 Goiaba não! A Bia é alérgica: desvie das goiabas e dos caixotes.</li>
+        <li>🍮 O pudim protege de um golpe. 🌹 100 flores valem uma vida.</li>
+        <li>💍 Cada fase esconde uma aliança.</li>
+      </ul>
       <p class="dica">Controle de videogame também funciona.</p>
       <button data-acao="voltar">Voltar</button>
     </div>
@@ -52,6 +83,7 @@
   <div id="tela-recordes" class="tela oculto">
     <div class="painel">
       <h2>Recordes online</h2>
+      <select id="recordes-fase"></select>
       <div id="lista-recordes-menu" class="lista-recordes">Carregando…</div>
       <button data-acao="voltar">Voltar</button>
     </div>
@@ -62,7 +94,7 @@
       <h2>Pausado</h2>
       <button data-acao="continuar" class="principal">Continuar</button>
       <button data-acao="reiniciar">Reiniciar fase</button>
-      <button data-acao="sair">Menu principal</button>
+      <button data-acao="mapa">Mapa de fases</button>
     </div>
   </div>
 
@@ -72,23 +104,36 @@
       <div id="fim-resumo" class="resumo"></div>
       <form id="form-recorde">
         <input id="nome-jogador" maxlength="16" placeholder="Seu nome" autocomplete="nickname" required>
-        <button type="submit" class="principal">Enviar tempo</button>
+        <button type="submit">Enviar tempo</button>
       </form>
       <div id="fim-status" class="dica"></div>
       <div id="lista-recordes-fim" class="lista-recordes"></div>
+      <button data-acao="proxima" id="botao-proxima" class="principal">Próxima fase</button>
       <button data-acao="reiniciar">Jogar de novo</button>
-      <button data-acao="sair">Menu principal</button>
+      <button data-acao="mapa">Mapa de fases</button>
     </div>
   </div>
 
   <div id="tela-gameover" class="tela oculto">
     <div class="painel">
       <h2>Fim de jogo</h2>
-      <p class="dica">As vidas acabaram.</p>
+      <p class="dica">As vidas acabaram. Bora de novo!</p>
       <button data-acao="reiniciar" class="principal">Tentar de novo</button>
-      <button data-acao="sair">Menu principal</button>
+      <button data-acao="mapa">Mapa de fases</button>
     </div>
   </div>
+
+  <div id="tela-casamento" class="tela tela-transparente oculto">
+    <div class="painel painel-casamento">
+      <p class="data-casamento">17 de outubro de 2027</p>
+      <h1 id="casal">Bia ❤</h1>
+      <p id="mensagem-final"></p>
+      <div id="casamento-resumo" class="resumo"></div>
+      <form id="form-recorde-final" class="oculto"></form>
+      <button data-acao="creditos" class="principal">Continuar</button>
+    </div>
+  </div>
+  <div id="confete"></div>
 
   <!-- Controles de toque (aparecem só em telas de toque) -->
   <div id="toque" class="oculto">
@@ -99,7 +144,7 @@
       <button data-tecla="baixo">▼</button>
     </div>
     <div class="acoes">
-      <button data-tecla="girar">⟳</button>
+      <button data-tecla="girar">💃</button>
       <button data-tecla="pular">⤒</button>
     </div>
     <button class="botao-pausa" data-tecla="pausa">❚❚</button>

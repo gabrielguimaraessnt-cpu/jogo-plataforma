@@ -1,15 +1,18 @@
-# Zuca e a Floresta do Caju — regras de trabalho
+# As Aventuras da Bia — regras de trabalho
 
 - Responder ao usuário em português. O usuário não é programador: explicar em linguagem simples e fazer
   as etapas técnicas por ele.
-- Jogo estático em Three.js (sem build): `index.html` + `src/*.js` (módulos ES) + `vendor/three` (versão fixa 0.169.0).
+- Jogo-presente para a noiva do usuário (Bia / Beatriz Pinheiro). Tudo personalizado: fases ligadas à vida
+  dela (família, igreja, hobbies, antigo emprego, casamento em 17/10/2027). Manter o tom carinhoso.
+- O vilão "XôMaq" é sátira de uma loja real: nunca usar o nome real nem o logo real no jogo.
+- Jogo estático em Three.js (sem build): `index.html` + `src/*.js` (módulos ES) + `vendor/three` (0.169.0).
 - Publicação: Vercel ligada à branch `main` (site estático, sem comando de build).
 - Supabase: projeto **`jogo-plataforma`** (ref `czaomtjzomclqnkkfgkz`). Usar SÓ este projeto. Não mexer no
-  `sistema-gerencial-integrado` nem em nenhum outro projeto.
-- Migrations em `supabase/migrations/`, idempotentes. Gravação de recordes só pela função `registrar_recorde`;
-  a tabela fica sem permissão de INSERT/UPDATE/DELETE para `anon`/`authenticated`.
+  `sistema-gerencial-integrado` nem em outro projeto.
+- Migrations em `supabase/migrations/`, idempotentes. Gravação de recordes só pela função `registrar_recorde`.
 - Nunca commitar a chave `service_role`. A chave publishable em `src/config.js` é pública de propósito.
-- Fases são dados em `src/fases/`; ajustes de jogabilidade em `src/config.js` (`AJUSTES`).
+- Fases: `src/fases/*.js` usando o construtor (`construtor.js`). Temas visuais: `src/temas.js`.
+  Pulo alcança ~2 m de altura e ~5 m de distância: buracos até 4,5 m, degraus até 1,5 m.
 - Testar no navegador headless (Playwright, com `--use-angle=swiftshader`) servindo a pasta com
-  `python3 -m http.server`. `window.__jogo` expõe `mundo` e `jogador` para testes.
-- Personagem e mundo são originais. Não copiar personagens, nomes ou arte de jogos existentes.
+  `python3 -m http.server`. `?tudo=1` libera todas as fases; `window.__jogo` expõe `mundo`, `jogador`,
+  `comecar(i)` e `estado`. No swiftshader o jogo roda lento (poucos quadros por segundo): esperar mais.

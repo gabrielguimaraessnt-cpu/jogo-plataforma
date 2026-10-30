@@ -3,9 +3,13 @@
 
 let ctx = null;
 let mudo = false;
-try { mudo = localStorage.getItem('zuca-mudo') === '1'; } catch {}
+let aoMudarSom = null;
+export function quandoMudarSom(fn) { aoMudarSom = fn; }
+try { mudo = localStorage.getItem('bia-mudo') === '1'; } catch {}
 
-function contexto() {
+export function estaMudo() { return mudo; }
+
+export function contexto() {
   if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
   if (ctx.state === 'suspended') ctx.resume();
   return ctx;
@@ -13,7 +17,8 @@ function contexto() {
 
 export function alternarSom() {
   mudo = !mudo;
-  try { localStorage.setItem('zuca-mudo', mudo ? '1' : '0'); } catch {}
+  try { localStorage.setItem('bia-mudo', mudo ? '1' : '0'); } catch {}
+  aoMudarSom?.(mudo);
   return !mudo;
 }
 

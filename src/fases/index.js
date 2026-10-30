@@ -1,4 +1,18 @@
-// Lista das fases, na ordem. Para criar uma fase nova: copie fase1.js, mude o "numero" e acrescente aqui.
-import fase1 from './fase1.js';
+// Lista das fases, na ordem, agrupadas por mundo (igual ao mapa do jogo).
+import f1 from './1-quintal-da-familia.js';
+import f2 from './2-ensaio-do-coral.js';
+import f3 from './3-atelie-de-costura.js';
+import f4 from './4-rodizio-de-sushi.js';
+import f5 from './5-aulao-de-fit-dance.js';
+import f6 from './6-loja-xomaq.js';
+import f7 from './7-o-grande-dia.js';
 
-export const FASES = [fase1];
+export const MUNDOS = [
+  { nome: 'Família', icone: '🏡', fases: [f1] },
+  { nome: 'Igreja', icone: '⛪', fases: [f2] },
+  { nome: 'Hobbies', icone: '🎨', fases: [f3, f4, f5] },
+  { nome: 'XôMaq', icone: '🧵', fases: [f6] },
+  { nome: 'Casamento', icone: '💍', fases: [f7] },
+];
+
+export const FASES = MUNDOS.flatMap((m) => m.fases.map((f) => ({ ...f, mundo: m.nome })));

@@ -1,23 +1,47 @@
-# Zuca e a Floresta do Caju
+# As Aventuras da Bia 🌲
 
-Jogo de plataforma 3D em corredor que roda no navegador: o tatu Zuca corre pela floresta, pula, gira para
-quebrar caixas, pega cajus, derruba besouros e tenta chegar ao anel dourado no menor tempo. Os tempos vão
-para um placar online.
+Jogo de plataforma 3D em corredor, feito de presente para a Bia (Beatriz Pinheiro). Roda no navegador,
+no computador e no celular.
 
-- **Motor:** [Three.js](https://threejs.org) 0.169 (já incluído em `vendor/`, não precisa instalar nada)
-- **Placar online:** Supabase (projeto `jogo-plataforma`)
-- **Publicação:** Vercel (site estático, sem etapa de build)
+A Bia atravessa 5 mundos da vida dela. Ela abre presentes, junta flores, foge das goiabas (é alérgica!)
+e enfrenta a turma da **XôMaq** (sátira da antiga loja). No fim, chega ao altar no dia **17/10/2027**.
+
+| Mundo | Fase | Tema |
+|---|---|---|
+| 🏡 Família | 1. Quintal da Família | casinhas, pinheiros, a família torcendo, mesa com bolo e pudim |
+| ⛪ Igreja | 2. Ensaio do Coral | vitrais, bancos, velas, notas musicais, tubos de órgão que sobem e descem |
+| 🎨 Hobbies | 3. Ateliê de Costura | lápis, alfinetes, botões e carretéis gigantes, manequins |
+| 🎨 Hobbies | 4. Rodízio de Sushi | sushi, estrogonofe e pudim gigantes, esteira de pratos, lanternas |
+| 🎨 Hobbies | 5. Aulão de Fit Dance | pista neon, caixas de som, plataformas no ritmo da música eletrônica |
+| 🧵 XôMaq | 6. A Loja XôMaq | prateleiras, metas, hora extra e o chefão **Gerente** |
+| 💍 Casamento | 7. O Grande Dia | tapete vermelho, convidados, pinheiros com luzes e a cena final no altar |
+
+## Itens e perigos
+
+| | O que é |
+|---|---|
+| 🌹 Flor | coletável; 100 flores = 1 vida |
+| 🎁 Presente | quebra ao pisar ou girar; solta flores |
+| 🔊 Caixa de som | trampolim (pulo bem alto) |
+| 🌲 Caixa do pinheiro | checkpoint; nasce um pinheirinho no lugar |
+| 🍈 Caixote de goiaba | explode (pisar acende o pavio; girar explode na hora) |
+| 🔩 Caixa XôMaq | de metal, não quebra |
+| 🍮 Pudim | protege de um golpe e fica voando em volta da Bia |
+| 💍 Aliança | uma escondida em cada fase |
+| 🧵 Maquininha / carretel | vilões da XôMaq: pule em cima ou gire |
+| 🍈 Goiaba | não dá para derrotar: só desviar |
+
+O menu mostra quantos dias faltam para o casamento. Nos dias antes do aniversário (8/11) aparece uma
+contagem, e no próprio dia aparecem parabéns com confete.
 
 ## Rodar no computador
-
-Qualquer servidor estático serve. Por exemplo, com Python:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Depois é só abrir http://localhost:8000. Abrir o `index.html` direto com dois cliques não funciona, porque
-o navegador bloqueia os módulos JavaScript fora de um servidor.
+Depois é só abrir http://localhost:8000. Para testar todas as fases sem precisar terminar as anteriores:
+http://localhost:8000/?tudo=1. Para ver a tela de aniversário: `?hoje=2026-11-08`.
 
 ## Controles
 
@@ -25,7 +49,7 @@ o navegador bloqueia os módulos JavaScript fora de um servidor.
 |---|---|---|
 | Andar | WASD ou setas | analógico / direcional |
 | Pular | Espaço | A / ✕ |
-| Girar (ataque) | J ou Shift | X / ▢ |
+| Giro do Fit Dance | J ou Shift | X / ▢ |
 | Pausar | Esc ou P | Start |
 | Som | M | |
 
@@ -35,44 +59,23 @@ No celular aparecem botões na tela.
 
 | Quero mudar… | Arquivo |
 |---|---|
-| Velocidade, altura do pulo, gravidade, vidas | `src/config.js` (objeto `AJUSTES`) |
-| A fase: chão, caixas, cajus, inimigos, plataformas | `src/fases/fase1.js` |
-| Criar outra fase | copiar `fase1.js` e registrar em `src/fases/index.js` |
-| Aparência do personagem, inimigos, caixas e árvores | `src/modelos.js`, ou modelos do Blender (abaixo) |
-| Física e controles do personagem | `src/jogador.js` |
-| Regras de caixas, inimigos e explosões | `src/mundo.js` |
-| Sons | `src/som.js` |
-| Telas, menu e HUD | `index.html` e `estilo.css` |
-| Placar online | `src/placar.js` e `supabase/migrations/` |
+| Nome do noivo e mensagem final, datas | `src/config.js` (`HISTORIA`) |
+| Nome e cores do vilão | `src/config.js` (`VILAO`) |
+| Velocidade, pulo, vidas | `src/config.js` (`AJUSTES`) |
+| As fases (caixas, flores, inimigos, buracos) | `src/fases/*.js` (construtor explicado em `construtor.js`) |
+| Cenários, céu e enfeites de cada mundo | `src/temas.js` |
+| A Bia e os vestidos | `src/modelos/bia.js` |
+| Presentes, pudim, aliança, pinheiro, pessoas | `src/modelos/itens.js` |
+| Vilões e chefão | `src/modelos/inimigos.js` e a classe `Chefe` em `src/mundo.js` |
+| Músicas | `src/musica.js` (todas originais, geradas na hora) |
+| Efeitos sonoros | `src/som.js` |
+| Telas e menu | `index.html`, `estilo.css`, `src/main.js` |
 
-## Trocar os modelos pelos seus (Blender)
+## Tecnologia
 
-Hoje todos os modelos são montados por código com formas simples. Para usar modelos próprios, veja
-[`assets/modelos/LEIA-ME.md`](assets/modelos/LEIA-ME.md). Em resumo: exporte um `.glb`, coloque em
-`assets/modelos/` e acrescente o nome na lista `assets/modelos/modelos.json`.
-
-## Tipos de caixa
-
-| Caixa | O que faz |
-|---|---|
-| Comum (madeira) | Quebra ao pisar, girar ou dar cabeçada. Solta cajus. |
-| Mola (seta verde) | Pisar dá um pulo bem alto. Girar quebra. |
-| Checkpoint (azul) | Ao quebrar, vira o novo ponto de volta quando o Zuca cai. |
-| Explosiva (vermelha) | Pisar acende o pavio (1,6 s). Girar explode na hora. Explosão perto mata. |
-| Metal | Não quebra. Serve de parede ou degrau. |
-
-## Placar online (Supabase)
-
-- Tabela `recordes`: leitura pública. Ninguém grava direto nela.
-- Função `registrar_recorde(nome, fase, tempo_ms, caixas, frutas)`: única forma de gravar. Ela limpa o
-  nome, confere os limites e segura excesso de envios.
-- A chave no `src/config.js` é a **publishable**, feita para ficar no navegador. A chave secreta
-  (`service_role`) nunca entra neste repositório.
-
-## Próximos passos sugeridos
-
-1. Jogar bastante e ajustar `AJUSTES` até o pulo e a corrida ficarem gostosos.
-2. Fazer o personagem no Blender e trocar o modelo.
-3. Mais fases (neve, caverna, praia), chefe no fim de cada mundo, mapa de fases.
-4. Música de fundo, menu de opções, save do progresso.
-5. Multiplayer (corrida fantasma com o tempo dos outros jogadores, ou corrida ao vivo usando o Realtime do Supabase).
+- [Three.js](https://threejs.org) 0.169 (já incluído em `vendor/`). Sem etapa de build.
+- Visual "desenho animado": materiais toon e contorno escuro.
+- Placar online no Supabase (projeto `jogo-plataforma`): tabela `recordes` com leitura pública; gravação
+  só pela função `registrar_recorde`, que valida os dados. A chave em `src/config.js` é a publishable,
+  feita para ficar no navegador.
+- O progresso (fases liberadas, alianças, roupa escolhida) fica salvo no próprio navegador.
