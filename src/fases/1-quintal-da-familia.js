@@ -39,4 +39,6 @@ f.subir(1.4).reto(28)
   .linha(-3, 14, -3, 24, 4).linha(3, 14, 3, 24, 4)
   .fim(25);
 
-export default f.pronto();
+const dados = f.pronto();
+dados.noivoTorcendo = [5.2, 0.6, -1]; // o noivo torcendo logo no começo
+export default dados;

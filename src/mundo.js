@@ -2,7 +2,8 @@
 // colisões, caixas, flores, inimigos, goiabeiras, plataformas que se movem, chefão e chegada.
 import * as THREE from 'three';
 import { TEMAS, bloco, materiaisTema, placa } from './temas.js';
-import { criarCaixa, criarFlor, criarAlianca, criarPudim, criarChegada, criarPinheiro, criarPessoa } from './modelos/itens.js';
+import { criarCaixa, criarFlor, criarAlianca, criarPudim, criarChegada, criarPinheiro } from './modelos/itens.js';
+import { criarNoivo } from './modelos/noivo.js';
 import { criarMaquininha, animarMaquininha, criarCarretel, criarGoiaba, criarGoiabeira, criarFumaca } from './modelos/inimigos.js';
 import { toon, aleatorio } from './estilo3d.js';
 import { som } from './som.js';
@@ -52,6 +53,12 @@ export class Mundo {
     this.chegada.visible = !fase.chegadaEscondida;
     this.raiz.add(this.chegada);
     if (fase.final) this.montarAltar();
+    if (fase.noivoTorcendo) {
+      const n = criarNoivo({ terno: false });
+      n.position.set(...fase.noivoTorcendo);
+      n.rotation.y = -Math.PI / 2 + 0.5;
+      this.adicionar(n);
+    }
     if (fase.chefe) this.chefe = new Chefe(this, fase.chefe);
   }
 
@@ -223,10 +230,9 @@ export class Mundo {
 
   montarAltar() {
     const c = this.chegada.position;
-    const noivo = criarPessoa(aleatorio(5), { terno: true, cabeloCurto: true });
+    const noivo = criarNoivo();
     noivo.position.set(c.x + 0.9, c.y + 0.2, c.z - 0.4);
     noivo.rotation.y = 0.3;
-    noivo.scale.setScalar(1.05);
     this.adicionar(noivo);
     this.noivo = noivo;
     for (const s of [-1, 1]) {

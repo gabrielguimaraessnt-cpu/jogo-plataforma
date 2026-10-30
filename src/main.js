@@ -345,7 +345,6 @@ function iniciarCerimonia() {
   jogador.modelo.rotation.y = 0.2;
   mundo.noivo.position.set(c.x + 0.6, c.y + 0.2, c.z - 0.4);
   mundo.noivo.rotation.y = -0.2;
-  mundo.noivo.userData.animar = () => {};
   const noivo = HISTORIA.noivo?.trim();
   $('casal').textContent = noivo ? `${HISTORIA.heroina} ❤ ${noivo}` : `${HISTORIA.heroina} ❤`;
   $('mensagem-final').textContent = HISTORIA.mensagemFinal;
