@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Zuca e a Floresta do Caju</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌰</text></svg>">
+  <link rel="stylesheet" href="estilo.css">
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
+  </script>
+</head>
+<body>
+  <div id="jogo"></div>
+
+  <!-- HUD durante a fase -->
+  <div id="hud" class="oculto">
+    <div class="hud-item"><span class="icone-caju"></span><b id="hud-frutas">0</b></div>
+    <div class="hud-item">❤ <b id="hud-vidas">3</b></div>
+    <div class="hud-item">📦 <b id="hud-caixas">0/0</b></div>
+    <div class="hud-item hud-tempo">⏱ <b id="hud-tempo">0:00.0</b></div>
+  </div>
+  <div id="aviso" class="oculto"></div>
+
+  <!-- Telas -->
+  <div id="tela-menu" class="tela">
+    <div class="painel">
+      <h1>Zuca<small>e a Floresta do Caju</small></h1>
+      <button data-acao="jogar" class="principal">Jogar</button>
+      <button data-acao="recordes">Recordes online</button>
+      <button data-acao="controles">Controles</button>
+    </div>
+  </div>
+
+  <div id="tela-controles" class="tela oculto">
+    <div class="painel">
+      <h2>Controles</h2>
+      <table class="controles">
+        <tr><td>Andar</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou setas</td></tr>
+        <tr><td>Pular</td><td><kbd>Espaço</kbd></td></tr>
+        <tr><td>Girar (ataque)</td><td><kbd>J</kbd> ou <kbd>Shift</kbd></td></tr>
+        <tr><td>Pausar</td><td><kbd>Esc</kbd> ou <kbd>P</kbd></td></tr>
+        <tr><td>Som</td><td><kbd>M</kbd></td></tr>
+      </table>
+      <p class="dica">Pule em cima das caixas ou gire perto delas para quebrar. Caixa verde é mola, azul é checkpoint,
+        vermelha explode (afaste-se!) e a de metal não quebra. Cada 100 cajus valem uma vida.</p>
+      <p class="dica">Controle de videogame também funciona.</p>
+      <button data-acao="voltar">Voltar</button>
+    </div>
+  </div>
+
+  <div id="tela-recordes" class="tela oculto">
+    <div class="painel">
+      <h2>Recordes online</h2>
+      <div id="lista-recordes-menu" class="lista-recordes">Carregando…</div>
+      <button data-acao="voltar">Voltar</button>
+    </div>
+  </div>
+
+  <div id="tela-pausa" class="tela oculto">
+    <div class="painel">
+      <h2>Pausado</h2>
+      <button data-acao="continuar" class="principal">Continuar</button>
+      <button data-acao="reiniciar">Reiniciar fase</button>
+      <button data-acao="sair">Menu principal</button>
+    </div>
+  </div>
+
+  <div id="tela-fim" class="tela oculto">
+    <div class="painel">
+      <h2 id="fim-titulo">Fase concluída!</h2>
+      <div id="fim-resumo" class="resumo"></div>
+      <form id="form-recorde">
+        <input id="nome-jogador" maxlength="16" placeholder="Seu nome" autocomplete="nickname" required>
+        <button type="submit" class="principal">Enviar tempo</button>
+      </form>
+      <div id="fim-status" class="dica"></div>
+      <div id="lista-recordes-fim" class="lista-recordes"></div>
+      <button data-acao="reiniciar">Jogar de novo</button>
+      <button data-acao="sair">Menu principal</button>
+    </div>
+  </div>
+
+  <div id="tela-gameover" class="tela oculto">
+    <div class="painel">
+      <h2>Fim de jogo</h2>
+      <p class="dica">As vidas acabaram.</p>
+      <button data-acao="reiniciar" class="principal">Tentar de novo</button>
+      <button data-acao="sair">Menu principal</button>
+    </div>
+  </div>
+
+  <!-- Controles de toque (aparecem só em telas de toque) -->
+  <div id="toque" class="oculto">
+    <div class="direcional">
+      <button data-tecla="cima">▲</button>
+      <button data-tecla="esquerda">◀</button>
+      <button data-tecla="direita">▶</button>
+      <button data-tecla="baixo">▼</button>
+    </div>
+    <div class="acoes">
+      <button data-tecla="girar">⟳</button>
+      <button data-tecla="pular">⤒</button>
+    </div>
+    <button class="botao-pausa" data-tecla="pausa">❚❚</button>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
