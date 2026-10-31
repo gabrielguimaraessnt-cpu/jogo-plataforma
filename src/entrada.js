@@ -1,21 +1,65 @@
 // Teclado, controle de videogame e botões de toque, todos viram o mesmo conjunto de "teclas lógicas".
 
-const MAPA_TECLADO = {
-  KeyW: 'cima', ArrowUp: 'cima',
-  KeyS: 'baixo', ArrowDown: 'baixo',
-  KeyA: 'esquerda', ArrowLeft: 'esquerda',
-  KeyD: 'direita', ArrowRight: 'direita',
-  Space: 'pular', KeyZ: 'pular',
-  // Girar: J, K, E ou X (o Shift saiu: no Windows ele abre a janela de "teclas de aderência").
-  KeyJ: 'girar', KeyK: 'girar', KeyE: 'girar', KeyX: 'girar',
-  KeyN: 'proximaMusica',
-  Escape: 'pausa', KeyP: 'pausa',
-  KeyM: 'som',
-  Enter: 'confirmar', NumpadEnter: 'confirmar',
+// Ações que a pessoa pode trocar de tecla (Controles no menu). Cada uma tem duas teclas.
+export const ACOES = [
+  ['cima', 'Andar para a frente'], ['baixo', 'Andar para trás'], ['esquerda', 'Andar para a esquerda'],
+  ['direita', 'Andar para a direita'], ['pular', 'Pular'], ['girar', 'Giro do Fit Dance'], ['pausa', 'Pausar'],
+];
+const PADRAO = {
+  cima: ['KeyW', 'ArrowUp'], baixo: ['KeyS', 'ArrowDown'], esquerda: ['KeyA', 'ArrowLeft'], direita: ['KeyD', 'ArrowRight'],
+  // O giro não usa Shift: no Windows ele abre a janela de "teclas de aderência".
+  pular: ['Space', 'KeyZ'], girar: ['KeyJ', 'KeyX'], pausa: ['Escape', 'KeyP'],
 };
+const FIXAS = { KeyM: 'som', KeyN: 'proximaMusica', Enter: 'confirmar', NumpadEnter: 'confirmar' };
+// Setas e Esc sempre funcionam nos menus, mesmo se a pessoa trocar os controles.
+const RESERVA = { ArrowUp: 'cima', ArrowDown: 'baixo', ArrowLeft: 'esquerda', ArrowRight: 'direita', Escape: 'pausa' };
+
+let teclas = structuredClone(PADRAO);
+try {
+  const salvas = JSON.parse(localStorage.getItem('bia-teclas') ?? 'null');
+  if (salvas) for (const [acao] of ACOES) if (Array.isArray(salvas[acao])) teclas[acao] = salvas[acao].slice(0, 2);
+} catch {}
+let mapa = {};
+function remontar() {
+  mapa = { ...FIXAS };
+  for (const [acao, codigos] of Object.entries(teclas)) for (const c of codigos) if (c) mapa[c] = acao;
+}
+remontar();
+const acaoDe = (codigo) => mapa[codigo] ?? RESERVA[codigo];
+
+export function teclasAtuais() { return structuredClone(teclas); }
+export function definirTecla(acao, posicao, codigo) {
+  for (const lista of Object.values(teclas)) for (let i = 0; i < lista.length; i++) if (lista[i] === codigo) lista[i] = null;
+  teclas[acao][posicao] = codigo;
+  try { localStorage.setItem('bia-teclas', JSON.stringify(teclas)); } catch {}
+  remontar();
+}
+export function restaurarTeclas() {
+  teclas = structuredClone(PADRAO);
+  try { localStorage.removeItem('bia-teclas'); } catch {}
+  remontar();
+}
+
+const NOMES = { Space: 'Espaço', Escape: 'Esc', Enter: 'Enter', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→',
+  ShiftLeft: 'Shift', ShiftRight: 'Shift dir.', ControlLeft: 'Ctrl', ControlRight: 'Ctrl dir.', AltLeft: 'Alt', AltRight: 'Alt Gr',
+  Tab: 'Tab', Backspace: 'Apagar', CapsLock: 'Caps Lock', Semicolon: 'Ç', Quote: '~', BracketLeft: '´', BracketRight: '[', Backslash: ']',
+  Comma: ',', Period: '.', Slash: ';', IntlRo: '/', Minus: '-', Equal: '=' };
+export function nomeTecla(codigo) {
+  if (!codigo) return '—';
+  if (NOMES[codigo]) return NOMES[codigo];
+  if (codigo.startsWith('Key')) return codigo.slice(3);
+  if (codigo.startsWith('Digit')) return codigo.slice(5);
+  if (codigo.startsWith('Numpad')) return 'Num ' + codigo.slice(6);
+  return codigo;
+}
+
+// Esperando a pessoa apertar a tecla nova (tela de Controles).
+let capturando = null;
+export function capturarTecla(fn) { capturando = fn; }
 
 const seguradas = new Set();
 const apertadasAgora = new Set();
+const teclasSeguradas = new Set();
 const toque = new Set();
 
 function apertar(nome) {
@@ -25,18 +69,28 @@ function apertar(nome) {
 function soltar(nome) { seguradas.delete(nome); }
 
 addEventListener('keydown', (e) => {
+  if (capturando) {
+    e.preventDefault();
+    const fn = capturando;
+    capturando = null;
+    fn(e.code === 'Escape' ? null : e.code);
+    return;
+  }
   // Digitando o nome: só as setas para cima/baixo e o Esc saem do campo.
   if (e.target instanceof HTMLInputElement && !['ArrowUp', 'ArrowDown', 'Escape'].includes(e.code)) return;
-  const nome = MAPA_TECLADO[e.code];
+  const nome = acaoDe(e.code);
   if (!nome) return;
   e.preventDefault();
+  teclasSeguradas.add(e.code);
   if (!e.repeat) apertar(nome);
 });
 addEventListener('keyup', (e) => {
-  const nome = MAPA_TECLADO[e.code];
-  if (nome) soltar(nome);
+  teclasSeguradas.delete(e.code);
+  const nome = acaoDe(e.code);
+  // Só solta a ação se nenhuma outra tecla dela continuar apertada.
+  if (nome && ![...teclasSeguradas].some((c) => acaoDe(c) === nome)) soltar(nome);
 });
-addEventListener('blur', () => seguradas.clear());
+addEventListener('blur', () => { seguradas.clear(); teclasSeguradas.clear(); });
 
 export function iniciarToque() {
   const area = document.getElementById('toque');
@@ -88,8 +142,10 @@ function lerControle() {
 // Chamar uma vez por quadro. Devolve o estado do quadro e limpa os "apertou agora".
 export function lerEntrada() {
   const eixos = lerControle();
-  let x = (seguradas.has('direita') ? 1 : 0) - (seguradas.has('esquerda') ? 1 : 0);
-  let z = (seguradas.has('baixo') ? 1 : 0) - (seguradas.has('cima') ? 1 : 0);
+  // Uma batidinha rápida na tecla (apertou e soltou entre dois quadros) também conta.
+  const ativa = (n) => seguradas.has(n) || apertadasAgora.has(n);
+  let x = (ativa('direita') ? 1 : 0) - (ativa('esquerda') ? 1 : 0);
+  let z = (ativa('baixo') ? 1 : 0) - (ativa('cima') ? 1 : 0);
   if (eixos.x || eixos.y) { x = eixos.x; z = eixos.y; }
   const tamanho = Math.hypot(x, z);
   if (tamanho > 1) { x /= tamanho; z /= tamanho; }

@@ -30,7 +30,7 @@ export const VILAO = {
 export const TODAS_LIBERADAS = true;
 
 export const AJUSTES = {
-  vidasIniciais: 4,
+  vidasIniciais: 10,
   velocidade: 7.5,        // metros por segundo correndo
   aceleracao: 60,
   atritoNoAr: 0.35,       // 1 = controla no ar igual ao chão

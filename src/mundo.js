@@ -6,6 +6,7 @@ import { criarCaixa, criarFlor, criarAlianca, criarPudim, criarChegada, criarPin
 import { criarNoivo } from './modelos/noivo.js';
 import { criarMaquininha, animarMaquininha, criarCarretel, criarGoiaba, criarGoiabeira, criarFumaca } from './modelos/inimigos.js';
 import { toon, aleatorio } from './estilo3d.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { som } from './som.js';
 import { AJUSTES, HISTORIA } from './config.js';
 
@@ -61,6 +62,47 @@ export class Mundo {
       this.adicionar(n);
     }
     if (fase.chefe) this.chefe = new Chefe(this, fase.chefe);
+    this.juntarCenarioParado();
+  }
+
+  // Desempenho: o cenário que não se mexe tem milhares de pecinhas. Juntar todas as que usam o mesmo
+  // material numa malha só reduz de ~6000 para algumas dezenas de desenhos por quadro.
+  juntarCenarioParado() {
+    const dinamicos = new Set([
+      ...this.caixas.map((c) => c.malha), ...this.flores.map((f) => f.malha), ...this.coletaveis.map((c) => c.malha),
+      ...this.inimigos.map((i) => i.malha), ...this.moveis.map((m) => m.malha), ...this.animados,
+      this.chegada, this.noivo, this.chefe?.malha,
+    ].filter(Boolean));
+    this.raiz.updateMatrixWorld(true);
+    const inversa = this.raiz.matrixWorld.clone().invert();
+    const grupos = new Map();
+    const juntadas = [];
+    for (const filho of this.raiz.children) {
+      if (dinamicos.has(filho)) continue;
+      filho.traverse((m) => {
+        if (!m.isMesh || Array.isArray(m.material) || m.isInstancedMesh) return;
+        const geo = m.geometry;
+        if (!geo.attributes.position || !geo.attributes.normal || !geo.attributes.uv) return;
+        const g = new THREE.BufferGeometry();
+        for (const nome of ['position', 'normal', 'uv']) g.setAttribute(nome, geo.attributes[nome]);
+        g.setIndex(geo.index ?? [...Array(geo.attributes.position.count).keys()]);
+        g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inversa, m.matrixWorld));
+        const chave = m.material.uuid + (m.castShadow ? 's' : '');
+        if (!grupos.has(chave)) grupos.set(chave, { material: m.material, sombra: m.castShadow, geos: [] });
+        grupos.get(chave).geos.push(g);
+        juntadas.push(m);
+      });
+    }
+    for (const m of juntadas) m.parent?.remove(m);
+    for (const { material, sombra, geos } of grupos.values()) {
+      const unida = mergeGeometries(geos, false);
+      if (!unida) continue;
+      const malha = new THREE.Mesh(unida, material);
+      malha.castShadow = sombra;
+      malha.receiveShadow = true;
+      malha.frustumCulled = false;
+      this.raiz.add(malha);
+    }
   }
 
   destruir() { this.cena.remove(this.raiz); }

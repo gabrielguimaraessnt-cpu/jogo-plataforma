@@ -82,24 +82,27 @@
     <div class="painel painel-controles">
       <h2>Controles</h2>
       <div class="colunas">
+      <div class="coluna">
       <table class="controles">
-        <tr><td>Andar</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou setas</td></tr>
-        <tr><td>Pular</td><td><kbd>Espaço</kbd> ou <kbd>Z</kbd></td></tr>
-        <tr><td>Giro do Fit Dance</td><td><kbd>J</kbd>, <kbd>K</kbd>, <kbd>E</kbd> ou <kbd>X</kbd></td></tr>
-        <tr><td>Pausar</td><td><kbd>Esc</kbd> ou <kbd>P</kbd></td></tr>
-        <tr><td>Som</td><td><kbd>M</kbd> liga/desliga, <kbd>N</kbd> próxima música</td></tr>
-        <tr><td>Menus</td><td>setas e <kbd>Enter</kbd>; <kbd>Esc</kbd> volta</td></tr>
+        <tbody id="lista-teclas"></tbody>
+        <tr><td>Som</td><td colspan="2"><kbd>M</kbd> liga/desliga, <kbd>N</kbd> próxima música</td></tr>
+        <tr><td>Menus</td><td colspan="2">setas e <kbd>Enter</kbd>; <kbd>Esc</kbd> volta</td></tr>
       </table>
+      <p class="dica" id="aviso-teclas">Clique numa tecla para trocar e depois aperte a nova.</p>
+      </div>
       <ul class="dica lista-dicas">
         <li>🎁 Pule em cima dos presentes ou gire perto deles para abrir.</li>
         <li>🔊 Caixa de som é trampolim. 🌲 Caixa do pinheiro é checkpoint.</li>
         <li>🍈 Goiaba não! A Bia é alérgica: desvie das goiabas e dos caixotes.</li>
         <li>🍮 O pudim protege de um golpe. 🌹 100 flores valem uma vida.</li>
         <li>💍 Cada fase esconde uma aliança.</li>
+        <li>🎮 Controle de videogame também funciona.</li>
       </ul>
       </div>
-      <p class="dica">Controle de videogame também funciona.</p>
-      <button data-acao="voltar">Voltar</button>
+      <div class="botoes">
+        <button data-acao="restaurar-teclas">Teclas padrão</button>
+        <button data-acao="voltar" class="principal">Voltar</button>
+      </div>
     </div>
   </div>
 

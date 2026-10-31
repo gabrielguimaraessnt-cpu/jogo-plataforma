@@ -1,6 +1,7 @@
 // Ferramentas de visual: materiais em estilo desenho animado (toon), contorno escuro,
 // texturas pintadas em canvas e formas arredondadas.
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // Três faixas de luz: sombra, meio-tom e luz. Dá o visual de desenho.
 const gradiente = (() => {
@@ -130,4 +131,35 @@ export function texturaTexto(linhas, { largura = 512, altura = 256, fundo = '#ff
     const lista = [].concat(linhas);
     lista.forEach((l, i) => g.fillText(l, w / 2, h / 2 + (i - (lista.length - 1) / 2) * h / (lista.length + 0.6)));
   }, { largura, suave: true });
+}
+
+// Junta as pecinhas de um objeto que usam o mesmo material numa malha só (menos desenhos por quadro).
+// Use só em objetos que não animam partes internas.
+export function compactar(objeto) {
+  objeto.updateMatrixWorld(true);
+  const inversa = objeto.matrixWorld.clone().invert();
+  const grupos = new Map();
+  const usadas = [];
+  objeto.traverse((m) => {
+    if (m === objeto || !m.isMesh || Array.isArray(m.material)) return;
+    const geo = m.geometry;
+    if (!geo.attributes.normal || !geo.attributes.uv) return;
+    const g = new THREE.BufferGeometry();
+    for (const nome of ['position', 'normal', 'uv']) g.setAttribute(nome, geo.attributes[nome]);
+    g.setIndex(geo.index ?? [...Array(geo.attributes.position.count).keys()]);
+    g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inversa, m.matrixWorld));
+    if (!grupos.has(m.material)) grupos.set(m.material, { geos: [], sombra: m.castShadow });
+    grupos.get(m.material).geos.push(g);
+    usadas.push(m);
+  });
+  for (const m of usadas) m.parent?.remove(m);
+  for (const [material, { geos, sombra }] of grupos) {
+    const unida = mergeGeometries(geos, false);
+    if (!unida) continue;
+    const malha = new THREE.Mesh(unida, material);
+    malha.castShadow = sombra;
+    malha.receiveShadow = true;
+    objeto.add(malha);
+  }
+  return objeto;
 }

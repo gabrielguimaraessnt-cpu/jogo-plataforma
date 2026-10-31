@@ -1,6 +1,6 @@
 // Coletáveis, caixas (presentes), chegada, pinheiros e pessoas.
 import * as THREE from 'three';
-import { toon, brilho, malha, contornar, caixaArredondada, texturaTexto, textura } from '../estilo3d.js';
+import { toon, brilho, malha, contornar, caixaArredondada, texturaTexto, textura, compactar } from '../estilo3d.js';
 import { VILAO } from '../config.js';
 
 // ---------- Flor (coletável principal) ----------
@@ -27,6 +27,7 @@ export function criarFlor(cor = 0xe63950) {
     folha.scale.set(1.3, 0.3, 0.6);
     g.add(folha);
     g.scale.setScalar(1.25);
+    compactar(g);
     prototiposFlor.set(cor, g);
   }
   return prototiposFlor.get(cor).clone();
@@ -204,6 +205,7 @@ export function criarCaixa(tipo, semente = 0) {
     }
   }
   g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  if (tipo !== 'mola') compactar(g);
   return g;
 }
 
@@ -304,7 +306,8 @@ export function criarPessoa(rnd, { crianca = false, roupa = null, terno = false,
   contornar(g, 0.01);
   const fase = rnd() * 10;
   const pula = rnd() < 0.5;
-  g.userData.animar = (t) => {
+  // Só parte das pessoas se mexe; as outras ficam paradas e são juntadas ao cenário (bem mais leve).
+  if (rnd() < 0.3) g.userData.animar = (t) => {
     corpo.position.y = pula ? Math.max(0, Math.sin(t * 6 + fase)) * 0.12 : 0;
     bracos[0].rotation.z = -0.15 - (Math.sin(t * 8 + fase) * 0.5 + 0.9) * (pula ? 1 : 0.3);
     bracos[1].rotation.z = pula ? 0.15 + (Math.sin(t * 8 + fase + 1) * 0.5 + 0.9) : 0.15;

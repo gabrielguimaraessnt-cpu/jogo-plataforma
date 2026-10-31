@@ -235,3 +235,22 @@ body.tela-baixa .botao-arquivo { font-size: 15px; padding: 5px 12px; }
 body.tela-baixa .painel-casamento h1 { font-size: 40px; }
 body.tela-baixa .painel-casamento { margin-bottom: 0; }
 body.tela-baixa #mensagem-final, body.tela-baixa .data-casamento { font-size: 15px; margin: 0; }
+
+/* Trocar teclas */
+button.tecla { min-width: 74px; font-size: 15px; padding: 3px 10px; font-family: inherit; }
+button.tecla.esperando { background: var(--destaque); color: #fff; border-color: #c2185b; }
+body.tela-baixa button.tecla { min-width: 60px; font-size: 13px; padding: 2px 8px; }
+body.toque .painel-controles .colunas > .coluna:first-child { display: none; }
+body.tela-baixa:not(.toque) .painel-controles .lista-dicas { display: none; }
+body.tela-baixa:not(.toque) .painel-controles .colunas > .coluna:first-child { flex: none; }
+@media (min-width: 720px) {
+  .painel-controles { width: min(860px, 100%); }
+  .painel-controles .colunas { flex-direction: row; gap: 20px; align-items: flex-start; text-align: left; }
+  .painel-controles .colunas > * { flex: 1; }
+}
+.controles td:first-child { white-space: nowrap; padding-right: 6px; }
+.painel-controles .controles { border-spacing: 6px 4px; }
+.painel-controles .botoes { flex-direction: row; }
+.painel-controles .botoes > * { flex: 1; }
+.painel-controles .controles { border-spacing: 6px 2px; }
+.painel-controles button.tecla { padding: 1px 10px; }

@@ -4,7 +4,7 @@ import { Mundo } from './mundo.js';
 import { Jogador } from './jogador.js';
 import { TEMAS } from './temas.js';
 import { ROUPAS } from './modelos/bia.js';
-import { lerEntrada, iniciarToque } from './entrada.js';
+import { lerEntrada, iniciarToque, ACOES, teclasAtuais, definirTecla, restaurarTeclas, nomeTecla, capturarTecla } from './entrada.js';
 import { som, alternarSom, contexto } from './som.js';
 import { tocarMusica, carregarMinhasMusicas, adicionarMinhasMusicas, apagarMinhasMusicas, escolherModoMusica, proximaMusica, estadoMinhasMusicas, aoMudarMinhasMusicas } from './musica.js';
 import { AJUSTES, HISTORIA, TODAS_LIBERADAS } from './config.js';
@@ -14,7 +14,7 @@ import { enviarRecorde, mostrarRecordes, formatarTempo } from './placar.js';
 // ---------- Cena ----------
 
 const renderizador = new THREE.WebGLRenderer({ antialias: true });
-renderizador.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderizador.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.25 : 1.5));
 renderizador.shadowMap.enabled = true;
 renderizador.shadowMap.type = THREE.PCFSoftShadowMap;
 document.getElementById('jogo').appendChild(renderizador.domElement);
@@ -32,6 +32,7 @@ cena.add(ceu, sol, sol.target);
 
 // No celular o jogo é sempre na horizontal: se o aparelho estiver em pé, a página inteira é girada.
 const ehCelular = matchMedia('(pointer: coarse)').matches;
+document.body.classList.toggle('toque', ehCelular);
 function redimensionar() {
   const girar = ehCelular && innerHeight > innerWidth;
   document.body.classList.toggle('girado', girar);
@@ -294,6 +295,28 @@ $('form-recorde').addEventListener('submit', async (e) => {
   enviarTempo(nome);
 });
 
+// ---------- Controles: trocar as teclas ----------
+
+function montarTeclas() {
+  const teclas = teclasAtuais();
+  $('lista-teclas').innerHTML = ACOES.map(([acao, nome]) => `<tr><td>${nome}</td>` +
+    [0, 1].map((i) => `<td><button class="tecla" data-trocar-tecla="${acao}" data-posicao="${i}">${nomeTecla(teclas[acao][i])}</button></td>`).join('') + '</tr>').join('');
+}
+
+$('lista-teclas').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-trocar-tecla]');
+  if (!b) return;
+  b.textContent = 'aperte…';
+  b.classList.add('esperando');
+  $('aviso-teclas').textContent = 'Aperte a tecla nova (Esc cancela).';
+  capturarTecla((codigo) => {
+    if (codigo) definirTecla(b.dataset.trocarTecla, +b.dataset.posicao, codigo);
+    $('aviso-teclas').textContent = codigo ? `Pronto: ${nomeTecla(codigo)} agora é "${ACOES.find(([a]) => a === b.dataset.trocarTecla)[1]}".` : 'Troca cancelada.';
+    montarTeclas();
+    $('lista-teclas').querySelector(`[data-trocar-tecla="${b.dataset.trocarTecla}"][data-posicao="${b.dataset.posicao}"]`)?.focus();
+  });
+});
+
 // ---------- Tela de músicas ----------
 
 function mostrarMusicas(e = estadoMinhasMusicas()) {
@@ -398,7 +421,8 @@ document.addEventListener('click', (e) => {
   switch (acao) {
     case 'mapa': irParaMenu('tela-mapa'); telaAnterior = 'tela-menu'; break;
     case 'roupas': estado = 'roupas'; telaAnterior = 'tela-menu'; montarRoupas(); mostrarTela('tela-roupas'); vitrine(true); break;
-    case 'controles': telaAnterior = 'tela-menu'; mostrarTela('tela-controles'); break;
+    case 'controles': telaAnterior = 'tela-menu'; montarTeclas(); $('aviso-teclas').textContent = 'Clique numa tecla para trocar e depois aperte a nova.'; mostrarTela('tela-controles'); break;
+    case 'restaurar-teclas': restaurarTeclas(); montarTeclas(); $('aviso-teclas').textContent = 'Teclas padrão de volta.'; break;
     case 'musicas': telaAnterior = 'tela-menu'; mostrarMusicas(); mostrarTela('tela-musicas'); break;
     case 'proxima-musica': proximaMusica(); break;
     case 'apagar-musicas': apagarMinhasMusicas(); break;
