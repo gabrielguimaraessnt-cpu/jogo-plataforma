@@ -7,7 +7,7 @@ import { ROUPAS } from './modelos/bia.js';
 import { lerEntrada, iniciarToque } from './entrada.js';
 import { som, alternarSom, contexto } from './som.js';
 import { tocarMusica, carregarMinhasMusicas, adicionarMinhasMusicas, apagarMinhasMusicas, escolherModoMusica, proximaMusica, estadoMinhasMusicas, aoMudarMinhasMusicas } from './musica.js';
-import { AJUSTES, HISTORIA } from './config.js';
+import { AJUSTES, HISTORIA, TODAS_LIBERADAS } from './config.js';
 import { FASES, MUNDOS } from './fases/index.js';
 import { enviarRecorde, mostrarRecordes, formatarTempo } from './placar.js';
 
@@ -84,8 +84,8 @@ const progresso = (() => {
   try { return { ...padrao, ...JSON.parse(localStorage.getItem('bia-progresso') ?? '{}') }; } catch { return padrao; }
 })();
 function salvar() { try { localStorage.setItem('bia-progresso', JSON.stringify(progresso)); } catch {} }
-// Atalho para testes: ?tudo=1 libera todas as fases.
-if (new URLSearchParams(location.search).has('tudo')) progresso.liberada = FASES.length;
+// Modo teste (config.js) ou atalho ?tudo=1: todas as fases liberadas.
+if (TODAS_LIBERADAS || new URLSearchParams(location.search).has('tudo')) progresso.liberada = FASES.length;
 
 // ---------- Estado do jogo ----------
 

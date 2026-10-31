@@ -25,6 +25,10 @@ export const VILAO = {
 };
 
 // Ajustes de jogabilidade. Mude aqui para deixar o jogo mais fácil ou mais difícil.
+// MODO TESTE: com true, todas as fases já começam liberadas no mapa.
+// Antes de entregar para a Bia, troque para false (aí cada fase libera ao terminar a anterior).
+export const TODAS_LIBERADAS = true;
+
 export const AJUSTES = {
   vidasIniciais: 4,
   velocidade: 7.5,        // metros por segundo correndo
