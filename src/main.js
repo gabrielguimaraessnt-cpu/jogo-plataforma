@@ -500,6 +500,7 @@ document.addEventListener('click', (e) => {
   if (!acao) return;
   switch (acao) {
     case 'mapa': irParaMenu('tela-mapa'); telaAnterior = 'tela-menu'; break;
+    case 'menu-inicial': irParaMenu('tela-menu'); break;
     case 'roupas': estado = 'roupas'; telaAnterior = 'tela-menu'; montarRoupas(); mostrarTela('tela-roupas'); vitrine(true); break;
     case 'controles': telaAnterior = 'tela-menu'; montarTeclas(); $('aviso-teclas').textContent = 'Clique numa tecla para trocar e depois aperte a nova.'; mostrarTela('tela-controles'); break;
     case 'restaurar-teclas': restaurarTeclas(); montarTeclas(); $('aviso-teclas').textContent = 'Teclas padrão de volta.'; break;
