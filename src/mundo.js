@@ -8,7 +8,7 @@ import { criarMaquininha, animarMaquininha, criarCarretel, criarGoiaba, criarGoi
 import { toon, aleatorio } from './estilo3d.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { som } from './som.js';
-import { AJUSTES, HISTORIA } from './config.js';
+import { AJUSTES, HISTORIA, PONTOS } from './config.js';
 
 const geoLasca = new THREE.BoxGeometry(0.16, 0.16, 0.05);
 const ALTURA_BAIXO = -7;
@@ -362,6 +362,7 @@ export class Mundo {
     c.solido.ativo = false;
     this.raiz.remove(c.malha);
     this.quebradas++;
+    this.eventos.pontos(PONTOS.caixa[c.tipo] ?? 100, c.pos, true);
     som.caixa();
     const cores = { comum: [0xff8fab, 0xfff3b0, 0xb8a1ff], mola: [0x26232e, 0x00f5d4], checkpoint: [0x52b788, 0xffffff], explosiva: [0xa0522d, 0x8fbf3a], vida: [0xffe5ec, 0xe63950], tesouro: [0xffc300, 0xffffff] }[c.tipo] ?? [0xaaaaaa];
     for (let i = 0; i < 12; i++) {
@@ -402,6 +403,7 @@ export class Mundo {
 
   derrubarInimigo(ini, origem) {
     ini.vivo = false;
+    this.eventos.pontos(PONTOS.inimigo, ini.pos);
     const dir = ini.pos.clone().sub(origem).setY(0).normalize();
     ini.voo = new THREE.Vector3(dir.x * 10, 9, dir.z * 10 - 4);
     som.inimigo();
@@ -720,6 +722,7 @@ class Chefe {
         m.adicionarParticula(peca, new THREE.Vector3((Math.random() - 0.5) * 12, 8 + Math.random() * 6, (Math.random() - 0.5) * 12), 2);
       }
       m.chegada.visible = true;
+      m.eventos.pontos(PONTOS.chefe, this.pos);
       m.eventos.aviso('Pedido de demissão aceito!', 2.5);
       som.vitoria();
       return;

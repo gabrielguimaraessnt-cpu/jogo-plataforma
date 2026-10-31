@@ -7,7 +7,7 @@ import { ROUPAS } from './modelos/bia.js';
 import { lerEntrada, iniciarToque, ACOES, teclasAtuais, definirTecla, restaurarTeclas, nomeTecla, capturarTecla } from './entrada.js';
 import { som, alternarSom, contexto } from './som.js';
 import { tocarMusica, carregarMinhasMusicas, adicionarMinhasMusicas, apagarMinhasMusicas, escolherModoMusica, proximaMusica, estadoMinhasMusicas, aoMudarMinhasMusicas } from './musica.js';
-import { AJUSTES, HISTORIA, TODAS_LIBERADAS } from './config.js';
+import { AJUSTES, HISTORIA, TODAS_LIBERADAS, PONTOS } from './config.js';
 import { FASES, MUNDOS } from './fases/index.js';
 import { enviarRecorde, mostrarRecordes, formatarTempo } from './placar.js';
 
@@ -129,6 +129,7 @@ let telaAnterior = 'tela-menu';
 let indiceFase = 0;
 let mundo = null, jogador = null;
 let vidas = 0, flores = 0, pudins = 0, tempoMs = 0, quedas = 0, pegouAlianca = false;
+let pontos = 0, combo = 0, ultimoCombo = -10, pontosFinais = 0;
 let tempoAviso = 0, tempoCerimonia = 0;
 
 function aviso(texto, duracao = 1.4) {
@@ -150,9 +151,32 @@ function perderVida() {
   if (jogador.morrer()) { quedas++; pudins = 0; jogador.definirPudins(0); }
 }
 
+// "+100" subindo da caixa, na posição dela na tela.
+function mostrarPontos(texto, pos3d, classe = '') {
+  if (!pos3d) return;
+  const v = pos3d.clone().add(new THREE.Vector3(0, 0.8, 0)).project(camera);
+  if (v.z > 1) return;
+  const el = document.createElement('span');
+  el.className = 'ponto-voando ' + classe;
+  el.textContent = texto;
+  el.style.left = ((v.x + 1) / 2 * renderizador.domElement.clientWidth) + 'px';
+  el.style.top = ((1 - v.y) / 2 * renderizador.domElement.clientHeight) + 'px';
+  $('popups').appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
 const eventos = {
+  // Pontos de caixas e inimigos. Caixas abertas em sequência rápida multiplicam (combo).
+  pontos(valor, pos, ehCaixa = false) {
+    const agora = tempoMs / 1000;
+    if (ehCaixa) { combo = agora - ultimoCombo < 1.5 ? Math.min(combo + 1, 5) : 1; ultimoCombo = agora; }
+    const mult = ehCaixa ? combo : 1;
+    pontos += valor * mult;
+    mostrarPontos(`+${valor * mult}${mult > 1 ? ` x${mult}` : ''}`, pos, mult > 1 ? 'combo' : '');
+  },
   flores(n) {
     flores += n;
+    pontos += n * PONTOS.flor;
     while (flores >= AJUSTES.floresPorVida) {
       flores -= AJUSTES.floresPorVida;
       vidas++;
@@ -178,11 +202,13 @@ const eventos = {
     aviso('+1 vida! ❤️', 1.4);
   },
   pudim() {
+    pontos += PONTOS.pudim;
     som.vida();
     if (pudins < AJUSTES.maxPudins) { pudins++; jogador.definirPudins(pudins); aviso('Pudim protetor!', 1.2); } else eventos.flores(10);
   },
   alianca() {
     pegouAlianca = true;
+    pontos += PONTOS.alianca;
     som.checkpoint();
     aviso('Aliança encontrada! 💍', 2);
     $('hud-alianca').classList.remove('oculto');
@@ -233,6 +259,7 @@ function comecar(indice = indiceFase) {
   jogador = null;
   montarFase(indice);
   vidas = AJUSTES.vidasIniciais; flores = 0; pudins = 0; tempoMs = 0; quedas = 0; pegouAlianca = false;
+  pontos = 0; combo = 0; ultimoCombo = -10;
   estado = 'jogando';
   mostrarTela(null);
   $('hud').classList.remove('oculto');
@@ -298,7 +325,7 @@ $('form-nome').addEventListener('submit', (e) => {
 async function enviarTempo(nome) {
   $('fim-status').textContent = `Enviando o tempo de ${nome}…`;
   try {
-    const id = await enviarRecorde({ nome, fase: FASES[indiceFase].numero, tempoMs, caixas: mundo.quebradas, frutas: flores });
+    const id = await enviarRecorde({ nome, fase: FASES[indiceFase].numero, tempoMs, caixas: mundo.quebradas, frutas: flores, pontos: pontosFinais });
     $('fim-status').textContent = `Tempo registrado no placar como ${nome}.`;
     $('form-recorde').classList.add('oculto');
     mostrarRecordes($('lista-recordes-fim'), FASES[indiceFase].numero, id);
@@ -312,12 +339,22 @@ function mostrarFim() {
   const total = mundo.totalCaixas;
   const fase = FASES[indiceFase];
   $('fim-titulo').textContent = mundo.quebradas >= total ? 'Todos os presentes abertos!' : 'Fase concluída!';
+  const bonusTempo = Math.max(0, PONTOS.tempoBase - Math.floor(tempoMs / 1000) * 10);
+  const bonusCaixas = mundo.quebradas >= total ? PONTOS.todasCaixas : 0;
+  pontosFinais = pontos + bonusTempo + bonusCaixas;
+  const fmt = (n) => n.toLocaleString('pt-BR');
   $('fim-resumo').innerHTML = `
     <span>Tempo</span><b>${formatarTempo(tempoMs)}</b>
     <span>Presentes</span><b>${mundo.quebradas}/${total}</b>
     <span>Flores</span><b>${flores}</b>
     <span>Aliança</span><b>${pegouAlianca ? '💍 achou!' : '—'}</b>
-    <span>Quedas</span><b>${quedas}</b>`;
+    <span>Pontos da fase</span><b>${fmt(pontos)}</b>
+    <span>Bônus de tempo</span><b>+${fmt(bonusTempo)}</b>
+    ${bonusCaixas ? `<span>Todos os presentes</span><b>+${fmt(bonusCaixas)}</b>` : ''}
+    <span class="total">Total</span><b class="total">⭐ ${fmt(pontosFinais)}</b>`;
+  const num = fase.numero;
+  if (!progresso.pontos) progresso.pontos = {};
+  if ((progresso.pontos[num] ?? 0) < pontosFinais) { progresso.pontos[num] = pontosFinais; salvar(); }
   $('fim-status').textContent = '';
   $('nome-jogador').value = nomeSalvo();
   $('botao-proxima').classList.toggle('oculto', indiceFase >= FASES.length - 1);
@@ -422,7 +459,8 @@ function montarMapa() {
         const i = indice++;
         const trancada = i >= progresso.liberada && !f.bonus; // a fase bônus fica sempre aberta
         const melhor = progresso.melhores[f.numero];
-        const extras = [melhor ? '⏱ ' + formatarTempo(melhor) : '', progresso.aliancas[f.numero] ? '💍' : '', progresso.todasCaixas[f.numero] ? '🎁' : ''].filter(Boolean).join(' ');
+        const recorde = progresso.pontos?.[f.numero];
+        const extras = [recorde ? '⭐ ' + recorde.toLocaleString('pt-BR') : '', melhor ? '⏱ ' + formatarTempo(melhor) : '', progresso.aliancas[f.numero] ? '💍' : '', progresso.todasCaixas[f.numero] ? '🎁' : ''].filter(Boolean).join(' ');
         return `<button class="fase-botao ${trancada ? 'trancada' : ''}" data-fase="${i}" ${trancada ? 'disabled' : ''}>
           ${trancada ? '🔒' : f.numero + '.'} ${f.nome}<small>${trancada ? 'Termine a anterior' : extras || f.descricao}</small></button>`;
       }).join('')}
@@ -572,6 +610,7 @@ function vitrine(instantaneo, dt = 0, centro = jogador.pos, distancia = 3.4) {
 // ---------- HUD ----------
 
 function atualizarHud() {
+  $('hud-pontos').textContent = pontos.toLocaleString('pt-BR');
   $('hud-flores').textContent = flores;
   $('hud-vidas').textContent = vidas;
   $('hud-pudins').textContent = pudins;

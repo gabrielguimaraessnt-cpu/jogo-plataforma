@@ -29,6 +29,18 @@ export const VILAO = {
 // Antes de entregar para a Bia, troque para false (aí cada fase libera ao terminar a anterior).
 export const TODAS_LIBERADAS = true;
 
+// Pontos (vão para o placar online). Abrir caixas em sequência rápida faz combo (x2, x3... até x5).
+export const PONTOS = {
+  flor: 10,
+  caixa: { comum: 100, mola: 50, checkpoint: 50, explosiva: 150, vida: 250, tesouro: 500 },
+  inimigo: 200,
+  chefe: 3000,
+  alianca: 1000,
+  pudim: 100,
+  todasCaixas: 2500,      // bônus por abrir todos os presentes da fase
+  tempoBase: 3000,        // bônus de tempo: 3000 menos 10 por segundo
+};
+
 export const AJUSTES = {
   vidasIniciais: 10,
   velocidade: 7.5,        // metros por segundo correndo
