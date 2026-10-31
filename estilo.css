@@ -260,3 +260,12 @@ body.tela-baixa:not(.toque) .painel-controles .colunas > .coluna:first-child { f
 .painel-controles .botoes > * { flex: 1; }
 .painel-controles .controles { border-spacing: 6px 2px; }
 .painel-controles button.tecla { padding: 1px 10px; }
+
+/* Tela cheia no iPhone: passo a passo */
+.passos { text-align: left; margin: 0; padding-left: 22px; line-height: 1.45; font-size: 16px; }
+.passos li + li { margin-top: 4px; }
+body.tela-baixa .passos { font-size: 14px; line-height: 1.3; }
+
+/* Áreas do celular (notch e barras) */
+#hud { top: max(12px, env(safe-area-inset-top, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); }
+#toque .botao-pausa { right: max(16px, env(safe-area-inset-right, 0px)); }

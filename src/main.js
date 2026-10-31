@@ -50,14 +50,41 @@ addEventListener('orientationchange', () => setTimeout(redimensionar, 200));
 redimensionar();
 
 // No Android dá para travar de verdade: tela cheia + horizontal no primeiro toque.
-if (ehCelular) {
-  addEventListener('pointerdown', async () => {
-    try {
-      if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.({ navigationUI: 'hide' });
-      await screen.orientation?.lock?.('landscape');
-    } catch {}
-  }, { once: true });
+// ---------- Tela cheia ----------
+// Android e computador: o navegador deixa entrar em tela cheia (e travar na horizontal no Android).
+// iPhone: o Safari não deixa; o jeito é instalar na tela de início (abre como aplicativo, sem barras).
+const raizDoc = document.documentElement;
+const podeTelaCheia = !!(raizDoc.requestFullscreen || raizDoc.webkitRequestFullscreen);
+const ehIphone = /iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1 && !podeTelaCheia);
+const instalado = matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const emTelaCheia = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+async function entrarTelaCheia() {
+  try {
+    if (!emTelaCheia()) await (raizDoc.requestFullscreen?.({ navigationUI: 'hide' }) ?? raizDoc.webkitRequestFullscreen?.());
+    await screen.orientation?.lock?.('landscape');
+  } catch {}
 }
+
+async function alternarTelaCheia() {
+  if (!podeTelaCheia) { telaAnterior = estado === 'pausa' ? 'tela-pausa' : 'tela-menu'; mostrarTela('tela-iphone'); return; }
+  if (emTelaCheia()) { try { await (document.exitFullscreen?.() ?? document.webkitExitFullscreen?.()); } catch {} }
+  else await entrarTelaCheia();
+}
+
+function atualizarBotaoTelaCheia() {
+  const mostrar = ehCelular && !instalado;
+  for (const b of document.querySelectorAll('[data-acao="tela-cheia"]')) {
+    b.classList.toggle('oculto', !mostrar);
+    b.textContent = emTelaCheia() ? 'Sair da tela cheia' : 'Tela cheia';
+  }
+}
+document.addEventListener('fullscreenchange', () => { atualizarBotaoTelaCheia(); setTimeout(redimensionar, 150); });
+document.addEventListener('webkitfullscreenchange', () => { atualizarBotaoTelaCheia(); setTimeout(redimensionar, 150); });
+atualizarBotaoTelaCheia();
+
+// No celular, o primeiro toque já tenta entrar em tela cheia (onde o navegador deixa).
+if (ehCelular && podeTelaCheia && !instalado) addEventListener('pointerdown', entrarTelaCheia, { once: true });
 
 // ---------- Modelo próprio da Bia (opcional, feito no Blender) ----------
 // assets/modelos/modelos.json lista os .glb que existem. Hoje só "bia" é usado.
@@ -91,7 +118,7 @@ if (TODAS_LIBERADAS || new URLSearchParams(location.search).has('tudo')) progres
 // ---------- Estado do jogo ----------
 
 const $ = (id) => document.getElementById(id);
-const telas = ['tela-nome', 'tela-musicas', 'tela-menu', 'tela-mapa', 'tela-roupas', 'tela-controles', 'tela-recordes', 'tela-pausa', 'tela-fim', 'tela-gameover', 'tela-casamento'];
+const telas = ['tela-iphone', 'tela-nome', 'tela-musicas', 'tela-menu', 'tela-mapa', 'tela-roupas', 'tela-controles', 'tela-recordes', 'tela-pausa', 'tela-fim', 'tela-gameover', 'tela-casamento'];
 function mostrarTela(id) {
   for (const t of telas) $(t).classList.toggle('oculto', t !== id);
   if (id) $(id).querySelector('button.principal, button')?.focus({ preventScroll: true });
@@ -445,6 +472,7 @@ document.addEventListener('click', (e) => {
     case 'recordes': telaAnterior = 'tela-menu'; mostrarTela('tela-recordes'); mostrarRecordes($('lista-recordes-menu'), +$('recordes-fase').value); break;
     case 'voltar': if (estado === 'roupas') estado = 'menu'; mostrarTela(telaAnterior); break;
     case 'continuar': estado = 'jogando'; mostrarTela(null); break;
+    case 'tela-cheia': alternarTelaCheia(); break;
     case 'reiniciar': comecar(indiceFase); break;
     case 'proxima': comecar(Math.min(indiceFase + 1, FASES.length - 1)); break;
     case 'creditos': irParaMenu('tela-mapa'); break;

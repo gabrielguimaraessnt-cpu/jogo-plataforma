@@ -106,6 +106,15 @@ const pintores = {
     for (let y = 0; y < h; y += 16) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
     g.fillStyle = '#ffd166'; g.fillRect(0, 0, w, 4);
   },
+  areia: (g, w, h) => {
+    g.fillStyle = '#f4dba5'; g.fillRect(0, 0, w, h);
+    salpicar(g, w, h, 260, ['#ecd092', '#f8e6bd', '#e3c27e', '#fff1cf'], 2, aleatorio(31));
+  },
+  areiaLado: (g, w, h) => {
+    g.fillStyle = '#d9b26f'; g.fillRect(0, 0, w, h);
+    salpicar(g, w, h, 180, ['#c9a05c', '#e3c27e', '#bf9550'], 3, aleatorio(32));
+    g.fillStyle = '#f4dba5'; g.fillRect(0, 0, w, 7);
+  },
   gramaFlorida: (g, w, h) => {
     pintores.grama(g, w, h);
     const rnd = aleatorio(13);
@@ -997,15 +1006,149 @@ export const TEMAS = {
   },
 };
 
-// Fase bônus: jardim florido, sem tapete de casamento.
-TEMAS.jardim = {
-  ...TEMAS.casamento,
-  mundo: 'Bônus',
-  ceu: 0xa9def9, neblina: [0xd0f0ff, 35, 120],
-  luz: { ceu: 0xffffff, chao: 0x7a9a6a, forca: 1.35, sol: 0xfff1d6, forcaSol: 2.3 },
-  plataforma: ['madeiraMesa', 'gramaFlorida'],
-  baixo: { cor: 0x48cae4, opacidade: 0.9 },
-  flor: 0xff4d6d, musica: 'familia', tapete: false,
+// ---------- Fase bônus: férias na praia ----------
+
+function coqueiro(rnd) {
+  const g = new THREE.Group();
+  const h = 3.2 + rnd() * 1.8, curva = (rnd() - 0.5) * 0.8;
+  const tronco = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(curva * 0.5, h * 0.5, 0), new THREE.Vector3(curva, h, 0)]);
+  g.add(malha(new THREE.TubeGeometry(tronco, 10, 0.16, 7, false), toon(0xa47148)));
+  for (let i = 0; i < 7; i++) {
+    const folha = malha(new THREE.ConeGeometry(0.28, 2.2, 4), toon(i % 2 ? 0x2d6a4f : 0x40916c), curva, h, 0);
+    folha.geometry.translate(0, 1.1, 0);
+    folha.rotation.set(1.9, (i / 7) * Math.PI * 2, 0, 'YXZ');
+    folha.scale.z = 0.25;
+    g.add(folha);
+  }
+  for (let i = 0; i < 3; i++) g.add(malha(new THREE.SphereGeometry(0.15, 8, 6), toon(0x6b4226), curva + Math.cos(i * 2.1) * 0.18, h - 0.15, Math.sin(i * 2.1) * 0.18));
+  return g;
+}
+
+function guardaSol(rnd) {
+  const g = new THREE.Group();
+  const cores = [[0xff4d6d, 0xffffff], [0x4cc9f0, 0xffffff], [0xffd166, 0xff8fab], [0x52b788, 0xfff3b0]][Math.floor(rnd() * 4)];
+  g.add(malha(new THREE.CylinderGeometry(0.04, 0.04, 2.3, 6), toon(0xf1f1f1), 0, 1.15, 0));
+  for (let i = 0; i < 8; i++) {
+    const gomo = malha(new THREE.ConeGeometry(1.3, 0.5, 3, 1, true, (i / 8) * Math.PI * 2, Math.PI / 4 + 0.01), toon(cores[i % 2], { side: THREE.DoubleSide }), 0, 2.3, 0);
+    g.add(gomo);
+  }
+  g.rotation.z = (rnd() - 0.5) * 0.25;
+  return g;
+}
+
+function cadeiraPraia(rnd) {
+  const g = new THREE.Group();
+  const tecido = toon([0xff8fab, 0x4cc9f0, 0xffd166][Math.floor(rnd() * 3)]);
+  const assento = malha(new THREE.BoxGeometry(0.6, 0.05, 0.9), tecido, 0, 0.3, 0);
+  g.add(assento);
+  const encosto = malha(new THREE.BoxGeometry(0.6, 0.05, 0.8), tecido, 0, 0.6, -0.65);
+  encosto.rotation.x = -0.9;
+  g.add(encosto);
+  for (const x of [-0.3, 0.3]) for (const z of [-0.4, 0.4]) g.add(malha(new THREE.CylinderGeometry(0.02, 0.02, 0.32, 4), toon(0xdddddd), x, 0.15, z));
+  return g;
+}
+
+function casteloAreia(rnd) {
+  const g = new THREE.Group();
+  const areia = toon(0xe9c46a);
+  g.add(malha(new THREE.CylinderGeometry(0.7, 0.8, 0.5, 10), areia, 0, 0.25, 0));
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2;
+    g.add(malha(new THREE.CylinderGeometry(0.2, 0.25, 0.6, 8), areia, Math.cos(a) * 0.5, 0.75, Math.sin(a) * 0.5));
+    g.add(malha(new THREE.ConeGeometry(0.22, 0.3, 8), areia, Math.cos(a) * 0.5, 1.2, Math.sin(a) * 0.5));
+  }
+  g.add(malha(new THREE.CylinderGeometry(0.28, 0.3, 0.9, 8), areia, 0, 0.9, 0));
+  g.add(malha(new THREE.CylinderGeometry(0.01, 0.01, 0.4, 3), toon(0x6b4226), 0, 1.55, 0));
+  g.add(malha(new THREE.BoxGeometry(0.2, 0.12, 0.01), toon(0xff4d6d), 0.1, 1.68, 0));
+  return g;
+}
+
+function boia(rnd) {
+  const g = new THREE.Group();
+  const b = malha(new THREE.TorusGeometry(0.4, 0.16, 10, 18), toon([0xff4d6d, 0xffd166, 0x4cc9f0][Math.floor(rnd() * 3)]), 0, 0.16, 0);
+  b.rotation.x = Math.PI / 2;
+  g.add(b);
+  return g;
+}
+
+function bolaPraia(rnd) {
+  const g = new THREE.Group();
+  const cores = [0xff4d6d, 0xffffff, 0x4cc9f0, 0xffd166, 0x52b788, 0xffffff];
+  for (let i = 0; i < 6; i++) g.add(malha(new THREE.SphereGeometry(0.35, 12, 10, (i / 6) * Math.PI * 2, Math.PI / 3), toon(cores[i]), 0, 0.35, 0));
+  return g;
+}
+
+function prancha(rnd) {
+  const g = new THREE.Group();
+  const p = malha(new THREE.CapsuleGeometry(0.28, 1.6, 4, 10), toon([0x4cc9f0, 0xff8fab, 0xffd166][Math.floor(rnd() * 3)]), 0, 1.1, 0);
+  p.scale.z = 0.25;
+  p.rotation.z = 0.15;
+  g.add(p);
+  return g;
+}
+
+function estrelaMar(rnd) {
+  const forma = new THREE.Shape();
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 ? 0.12 : 0.3, a = (i / 10) * Math.PI * 2;
+    if (i === 0) forma.moveTo(Math.cos(a) * r, Math.sin(a) * r); else forma.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  const m = malha(new THREE.ExtrudeGeometry(forma, { depth: 0.06, bevelEnabled: false }), toon(0xf77f00));
+  m.rotation.x = -Math.PI / 2;
+  m.position.y = 0.02;
+  const g = new THREE.Group(); g.add(m);
+  return g;
+}
+
+function mar(raiz, zMin, zMax) {
+  for (const lado of [-1, 1]) {
+    const agua = new THREE.Mesh(new THREE.PlaneGeometry(120, zMax - zMin + 200), new THREE.MeshLambertMaterial({ color: 0x29b6d6 }));
+    agua.rotation.x = -Math.PI / 2;
+    agua.position.set(lado * 85, -1.2, (zMax + zMin) / 2);
+    raiz.add(agua);
+    const espuma = new THREE.Mesh(new THREE.PlaneGeometry(3, zMax - zMin + 200), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 }));
+    espuma.rotation.x = -Math.PI / 2;
+    espuma.position.set(lado * 26, -1.1, (zMax + zMin) / 2);
+    raiz.add(espuma);
+  }
+}
+
+TEMAS.ferias = {
+  mundo: 'Férias',
+  ceu: 0x7fd3f7, neblina: [0xbfe9ff, 35, 130],
+  luz: { ceu: 0xffffff, chao: 0xc9a66b, forca: 1.4, sol: 0xfff3d6, forcaSol: 2.5 },
+  chao: ['areiaLado', 'areia'], margem: ['areiaLado', 'areia'], plataforma: ['madeiraMesa', 'madeiraMesa'],
+  baixo: { cor: 0x1fa2c4, opacidade: 0.95 },
+  flor: 0xff4d6d, musica: 'ferias',
+  enfeite(rnd, dist) {
+    const r = rnd();
+    if (r < 0.28) return coqueiro(rnd);
+    if (r < 0.42) return guardaSol(rnd);
+    if (r < 0.52) return cadeiraPraia(rnd);
+    if (r < 0.6) return casteloAreia(rnd);
+    if (r < 0.68) return boia(rnd);
+    if (r < 0.75) return bolaPraia(rnd);
+    if (r < 0.81) return prancha(rnd);
+    if (r < 0.88 && dist < 4) return criarPessoa(rnd, { roupa: [0xff4d6d, 0x4cc9f0, 0xffd166, 0x52b788][Math.floor(rnd() * 4)] });
+    return estrelaMar(rnd);
+  },
+  beirada: null,
+  fundo(raiz, zMin, zMax, rnd) {
+    mar(raiz, zMin, zMax);
+    nuvens(raiz, zMin, zMax, rnd);
+    const sol = new THREE.Mesh(new THREE.CircleGeometry(9, 32), new THREE.MeshBasicMaterial({ color: 0xffe066, fog: false }));
+    sol.position.set(30, 45, zMin - 110);
+    raiz.add(sol);
+    for (let z = zMax - 30; z > zMin - 40; z -= 55) {
+      const ilha = new THREE.Group();
+      const morro = malha(new THREE.SphereGeometry(6, 14, 10), toon(0x52b788), 0, -2.5, 0);
+      morro.scale.y = 0.5;
+      ilha.add(morro);
+      for (let i = 0; i < 3; i++) { const c = coqueiro(rnd); c.position.set(-2 + i * 2, 0, (rnd() - 0.5) * 2); ilha.add(c); }
+      ilha.position.set((z / 55) % 2 ? -60 : 60, -1, z);
+      raiz.add(ilha);
+    }
+  },
 };
 
 export function materiaisTema(tema, qual = 'chao') {

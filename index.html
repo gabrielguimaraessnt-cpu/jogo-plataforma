@@ -2,7 +2,15 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <!-- Instalar na tela de início: abre em tela cheia, sem a barra do navegador -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#e0457b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Aventuras da Bia">
+  <link rel="apple-touch-icon" href="assets/icones/icone-180.png">
   <title>As Aventuras da Bia</title>
   <meta name="description" content="Jogo de plataforma 3D feito para a Bia.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌲</text></svg>">
@@ -57,6 +65,7 @@
         <button data-acao="musicas">Músicas</button>
         <button data-acao="recordes">Recordes online</button>
         <button data-acao="controles">Controles</button>
+        <button data-acao="tela-cheia" id="botao-tela-cheia" class="oculto">Tela cheia</button>
       </div>
     </div>
   </div>
@@ -123,6 +132,19 @@
     </div>
   </div>
 
+  <div id="tela-iphone" class="tela oculto">
+    <div class="painel painel-iphone">
+      <h2>Tela cheia no iPhone</h2>
+      <p class="dica">O Safari não deixa sites ocuparem a tela toda. Instalando o jogo na tela de início, ele abre como um aplicativo, em tela cheia:</p>
+      <ol class="passos">
+        <li>Toque no botão <b>Compartilhar</b> do Safari (o quadrado com a setinha para cima).</li>
+        <li>Escolha <b>Adicionar à Tela de Início</b> e depois <b>Adicionar</b>.</li>
+        <li>Abra o jogo pelo ícone <b>Aventuras da Bia</b>.</li>
+      </ol>
+      <button data-acao="voltar" class="principal">Entendi</button>
+    </div>
+  </div>
+
   <div id="tela-recordes" class="tela oculto">
     <div class="painel">
       <h2>Recordes online</h2>
@@ -138,6 +160,7 @@
       <button data-acao="continuar" class="principal">Continuar</button>
       <button data-acao="reiniciar">Reiniciar fase</button>
       <button data-acao="mapa">Mapa de fases</button>
+      <button data-acao="tela-cheia" class="botao-tela-cheia-pausa oculto">Tela cheia</button>
     </div>
   </div>
 

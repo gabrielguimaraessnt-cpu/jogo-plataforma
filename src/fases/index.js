@@ -7,7 +7,7 @@ import f5 from './5-aulao-de-fit-dance.js';
 import f6 from './6-loja-xomaq.js';
 import f7 from './7-noite-de-natal.js';
 import f8 from './8-o-grande-dia.js';
-import f9 from './9-jardim-bonus.js';
+import f9 from './9-ferias-na-praia.js';
 
 export const MUNDOS = [
   { nome: 'Família', icone: '🏡', fases: [f1] },
@@ -16,7 +16,7 @@ export const MUNDOS = [
   { nome: 'XôMaq', icone: '🧵', fases: [f6] },
   { nome: 'Natal', icone: '🎄', fases: [f7] },
   { nome: 'Casamento', icone: '💍', fases: [f8] },
-  { nome: 'Bônus', icone: '⭐', fases: [f9] },
+  { nome: 'Férias (bônus)', icone: '🏖️', fases: [f9] },
 ];
 
 export const FASES = MUNDOS.flatMap((m) => m.fases.map((f) => ({ ...f, mundo: m.nome })));

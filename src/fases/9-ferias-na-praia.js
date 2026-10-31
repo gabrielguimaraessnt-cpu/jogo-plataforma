@@ -1,12 +1,12 @@
-// Fase BÔNUS — Jardim das Flores: sem bichinhos e sem perder vida. Só para juntar flores e abrir caixas.
-// Se cair, a Bia volta para o último pinheirinho sem perder nada.
+// Fase BÔNUS — Férias na Praia: sem bichinhos e sem perder vida. Só para juntar flores e abrir caixas.
+// Se cair no mar, a Bia volta para o último pinheirinho sem perder nada.
 import { Fase } from './construtor.js';
 
-const f = new Fase({ numero: 9, nome: 'Jardim das Flores', tema: 'jardim',
-  descricao: 'Fase bônus: sem bichinhos e sem perder vida. Junte todas as flores e abra todos os presentes!' });
+const f = new Fase({ numero: 9, nome: 'Férias na Praia', tema: 'ferias',
+  descricao: 'Fase bônus: férias! Sem bichinhos e sem perder vida. Junte as flores e abra todos os presentes.' });
 
 f.reto(30)
-  .placa(-3.4, 3, ['Fase', 'bônus!'])
+  .placa(-3.4, 3, ['Férias!', 'Fase bônus'])
   .zigue(3, 28, 12)
   .caixa('comum', -2.5, 6).caixa('comum', 2.5, 6).pilha('comum', 0, 10, 3)
   .caixa('tesouro', -3, 14).caixa('vida', 3, 14)
