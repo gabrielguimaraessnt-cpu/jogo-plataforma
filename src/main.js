@@ -558,7 +558,7 @@ function iniciarCerimonia() {
   estado = 'cerimonia';
   tempoCerimonia = 0;
   $('hud').classList.add('oculto');
-  tocarMusica('casamento');
+  tocarMusica('cerimonia');
   som.vitoria();
   const c = mundo.chegada.position;
   // No altar, a Bia sempre aparece de vestido de noiva.

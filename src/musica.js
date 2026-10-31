@@ -7,19 +7,46 @@ const MAIOR = [0, 2, 4, 5, 7, 9, 11];
 const MENOR = [0, 2, 3, 5, 7, 8, 10];
 const PENTA = [0, 2, 4, 7, 9];
 
+// Melodias de domínio público (composições do século XIX), com arranjo eletrônico feito aqui.
+// Cada nota: [nota MIDI, duração em tempos]. 60 = dó central.
+const [C4, D4, E4, F4, G4, A4, B4, C5, D5, E5, F5, G5, A5] = [60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77, 79, 81];
+// "Jingle Bells" (James Lord Pierpont, 1857) — refrão.
+const JINGLE_BELLS = [
+  [E5, 1], [E5, 1], [E5, 2], [E5, 1], [E5, 1], [E5, 2], [E5, 1], [G5, 1], [C5, 1.5], [D5, 0.5], [E5, 4],
+  [F5, 1], [F5, 1], [F5, 1.5], [F5, 0.5], [F5, 1], [E5, 1], [E5, 1], [E5, 0.5], [E5, 0.5],
+  [E5, 1], [D5, 1], [D5, 1], [E5, 1], [D5, 2], [G5, 2],
+  [E5, 1], [E5, 1], [E5, 2], [E5, 1], [E5, 1], [E5, 2], [E5, 1], [G5, 1], [C5, 1.5], [D5, 0.5], [E5, 4],
+  [F5, 1], [F5, 1], [F5, 1], [F5, 1], [F5, 1], [E5, 1], [E5, 1], [E5, 0.5], [E5, 0.5],
+  [G5, 1], [G5, 1], [F5, 1], [D5, 1], [C5, 4],
+];
+// "Marcha Nupcial" / Coro Nupcial de Lohengrin (Richard Wagner, 1850) — "Here comes the bride".
+const MARCHA_NUPCIAL = [
+  [G4, 1], [C5, 0.75], [C5, 0.25], [C5, 2],
+  [G4, 1], [D5, 0.75], [B4, 0.25], [C5, 2],
+  [G4, 1], [C5, 0.75], [F5, 0.25], [F5, 1.5], [E5, 0.5],
+  [D5, 0.75], [C5, 0.25], [B4, 0.75], [C5, 0.25], [D5, 2],
+  [G4, 1], [C5, 0.75], [C5, 0.25], [C5, 2],
+  [G4, 1], [D5, 0.75], [B4, 0.25], [C5, 2],
+  [G4, 1], [C5, 0.75], [F5, 0.25], [A5, 1.5], [F5, 0.5],
+  [D5, 0.75], [B4, 0.25], [C5, 3],
+];
+
 // Estilos: 'funkpop' (groove dançante de baixo, guitarrinha e metais), 'house' e 'eletronica' (batida reta),
 // 'louvor' (banda da igreja), 'natal', 'tensa' e 'romantica'. Tudo composto aqui, nada copiado.
 const TRILHAS = {
-  menu:      { bpm: 112, raiz: 57, escala: MENOR, acordes: [0, 3, 5, 4], estilo: 'funkpop', lead: 'square', semente: 11 , arquivo: 'assets/musicas/menu.mp3' },
+  // Menu: animada e suave (composição própria).
+  menu:      { bpm: 108, raiz: 60, escala: MAIOR, acordes: [0, 5, 3, 4], estilo: 'suave', lead: 'triangle', semente: 21, dobra: 12 },
   familia:   { bpm: 114, raiz: 60, escala: MAIOR, acordes: [0, 4, 5, 3], estilo: 'funkpop', lead: 'square', semente: 2 , arquivo: 'assets/musicas/familia.mp3' },
   igreja:    { bpm: 92, raiz: 55, escala: MAIOR, acordes: [0, 4, 5, 3, 0, 4, 3, 4], estilo: 'louvor', lead: 'triangle', semente: 3 , arquivo: 'assets/musicas/igreja.mp3' },
-  natal:     { bpm: 120, raiz: 62, escala: MAIOR, acordes: [0, 3, 4, 0, 5, 1, 4, 0], estilo: 'natal', lead: 'sine', semente: 9 },
+  natal:     { bpm: 132, raiz: 60, escala: MAIOR, acordes: [0, 0, 0, 0, 3, 0, 1, 4, 0, 0, 0, 0, 3, 0, 4, 0], estilo: 'natal', lead: 'square', notas: JINGLE_BELLS, dobra: 12, semente: 9 },
   atelie:    { bpm: 120, raiz: 62, escala: MAIOR, acordes: [0, 5, 1, 4], estilo: 'house', lead: 'triangle', semente: 4 , arquivo: 'assets/musicas/atelie.mp3' },
   rodizio:   { bpm: 116, raiz: 62, escala: PENTA, acordes: [0, 3, 0, 4], estilo: 'funkpop', lead: 'triangle', semente: 5 , arquivo: 'assets/musicas/rodizio.mp3' },
   fitdance:  { bpm: 128, raiz: 57, escala: MENOR, acordes: [0, 5, 2, 6], estilo: 'eletronica', lead: 'sawtooth', semente: 6 , arquivo: 'assets/musicas/fitdance.mp3' },
   loja:      { bpm: 132, raiz: 52, escala: MENOR, acordes: [0, 0, 5, 4], estilo: 'tensa', lead: 'square', semente: 7 , arquivo: 'assets/musicas/loja.mp3' },
   ferias:    { bpm: 112, raiz: 60, escala: PENTA, acordes: [0, 3, 4, 0], estilo: 'house', lead: 'triangle', semente: 12 },
-  casamento: { bpm: 76, raiz: 60, escala: MAIOR, acordes: [0, 4, 5, 3, 0, 3, 4, 4], estilo: 'romantica', lead: 'sine', semente: 8 , arquivo: 'assets/musicas/casamento.mp3' },
+  casamento: { bpm: 100, raiz: 60, escala: MAIOR, acordes: [0, 4, 3, 4, 0, 4, 3, 0], estilo: 'suave', lead: 'triangle', notas: MARCHA_NUPCIAL, dobra: 12, semente: 8 },
+  // Cena do altar: a mesma marcha, devagar e emocionante.
+  cerimonia: { bpm: 72, raiz: 60, escala: MAIOR, acordes: [0, 4, 3, 4, 0, 4, 3, 0], estilo: 'balada', lead: 'sine', notas: MARCHA_NUPCIAL, dobra: 12, semente: 8 },
 };
 
 const freq = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
@@ -91,6 +118,17 @@ function bateria(c, destino, t, tipo, vol = 0.5) {
 
 // Gera uma melodia fixa (mesma semente = mesma música) que respeita os acordes.
 function compor(tr) {
+  // Melodia fixa (domínio público): cada tempo vale 4 passos.
+  if (tr.notas) {
+    const total = tr.acordes.length * 16;
+    const melodia = new Array(total).fill(null);
+    let passo = 0;
+    for (const [midi, tempos] of tr.notas) {
+      if (passo < total) melodia[passo] = { midi, dur: tempos * 4 };
+      passo += Math.round(tempos * 4);
+    }
+    return { melodia, passosPorCompasso: 16 };
+  }
   const rnd = aleatorio(tr.semente * 977);
   const passosPorCompasso = tr.estilo === 'romantica' ? 12 : 16;
   const melodia = [];
@@ -169,6 +207,19 @@ function agendarPasso(c, tr, comp, passo, t) {
       if (p === 4 || p === 12) bateria(c, m, t, 'palma', 0.4);
       if (p % 4 === 2) for (const k of [0, 2, 4]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, 1), dur: dur16 * 2.5, tipo: 'sine', vol: 0.025 });
       break;
+    case 'suave': // animada mas suave: batida leve, acordes macios com sétima, baixo redondo
+      if (p % 4 === 0) bateria(c, m, t, 'bumbo', 0.35);
+      if (p % 4 === 2) bateria(c, m, t, 'chimbal', 0.35);
+      if (p === 4 || p === 12) bateria(c, m, t, 'palma', 0.25);
+      if (p === 0 || p === 8) for (const k of [0, 2, 4, 6]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, -1), dur: dur16 * 7.5, tipo: 'sine', vol: 0.035, ataque: 0.06 });
+      if ([0, 6, 10].includes(p)) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2), dur: dur16 * 3, tipo: 'triangle', vol: 0.15 });
+      if (p % 4 === 3) nota(c, m, { t, midi: grauParaMidi(tr, acorde + 4, 0), dur: dur16 * 0.8, tipo: 'sine', vol: 0.025 });
+      break;
+    case 'balada': // cena do altar: sem bateria, acordes longos e baixo suave
+      if (p === 0) for (const k of [0, 2, 4]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, -1), dur: dur16 * 15, tipo: 'sine', vol: 0.05, ataque: 0.25 });
+      if (p === 0 || p === 8) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2), dur: dur16 * 7, tipo: 'triangle', vol: 0.14, ataque: 0.05 });
+      if (p % 2 === 0) nota(c, m, { t, midi: grauParaMidi(tr, acorde + [0, 2, 4, 2][(p >> 1) % 4], 1), dur: dur16 * 1.5, tipo: 'sine', vol: 0.018 });
+      break;
     case 'romantica':
       if (p === 0) nota(c, m, { t, midi: grauParaMidi(tr, acorde, -2), dur: dur16 * 11, tipo: 'triangle', vol: 0.14, ataque: 0.05 });
       if (p === 4 || p === 8) for (const k of [2, 4]) nota(c, m, { t, midi: grauParaMidi(tr, acorde + k, -1), dur: dur16 * 3, tipo: 'sine', vol: 0.06 });
@@ -196,8 +247,13 @@ function agendarPasso(c, tr, comp, passo, t) {
   }
   const g = comp.melodia[i];
   if (g !== null) {
-    const longa = tr.estilo === 'orgao' || tr.estilo === 'romantica';
-    nota(c, m, { t, midi: grauParaMidi(tr, g, 0), dur: dur16 * (longa ? 3.5 : 1.8), tipo: tr.lead, vol: tr.lead === 'sawtooth' || tr.lead === 'square' ? 0.045 : 0.09, filtro: tr.lead === 'sawtooth' ? 3000 : null });
+    const longa = tr.estilo === 'orgao' || tr.estilo === 'romantica' || tr.estilo === 'balada';
+    const midi = typeof g === 'object' ? g.midi : grauParaMidi(tr, g, 0);
+    const dur = typeof g === 'object' ? dur16 * Math.max(g.dur * 0.9, 1.2) : dur16 * (longa ? 3.5 : 1.8);
+    const forte = tr.lead === 'sawtooth' || tr.lead === 'square';
+    nota(c, m, { t, midi, dur, tipo: tr.lead, vol: forte ? 0.045 : 0.09, filtro: forte ? 2600 : null });
+    // sininho uma oitava acima, bem baixinho, para dar brilho
+    if (tr.dobra) nota(c, m, { t, midi: midi + tr.dobra, dur: Math.min(dur, dur16 * 3), tipo: 'sine', vol: 0.03 });
   }
 }
 
