@@ -11,7 +11,7 @@
 
 export class Fase {
   constructor(meta) {
-    this.d = { ...meta, plataformas: [], moveis: [], caixas: [], frutas: [], inimigos: [], goiabeiras: [], pudins: [], aliancas: [], placas: [], inicio: [0, 0, 2] };
+    this.d = { ...meta, plataformas: [], moveis: [], caixas: [], frutas: [], inimigos: [], goiabeiras: [], pudins: [], aliancas: [], placas: [], esteiras: [], inicio: [0, 0, 2] };
     this.z = 6;
     this.y = 0;
     this.ini = 6;
@@ -70,6 +70,93 @@ export class Fase {
     return this;
   }
 
+  // ---------- trechos especiais (variedade) ----------
+
+  // Ponte estreita sem paredes: dá para cair dos lados.
+  ponte(comp, { largura = 2.4, x = 0, flores = true } = {}) {
+    this.ini = this.z; this.yIni = this.y;
+    this.d.plataformas.push({ pos: [x, this.y - 0.4, this.z - comp / 2], tam: [largura, 0.8, comp], tipo: 'bloco' });
+    if (flores) this.linha(x, 1, x, comp - 1, Math.max(2, Math.round(comp / 2.5)));
+    this.z -= comp;
+    this.topoAnterior = this.y;
+    return this;
+  }
+
+  // Escada de blocos subindo (ou descendo, com degrau negativo). No fim, o chão fica na altura do último degrau.
+  escada(n, { degrau = 0.8, vao = 1.4, tam = 2.6, x = 0 } = {}) {
+    for (let i = 0; i < n; i++) {
+      this.z -= vao;
+      this.y += degrau;
+      this.d.plataformas.push({ pos: [x, this.y - 0.4, this.z - tam / 2], tam: [tam, 0.8, tam], tipo: 'bloco' });
+      this.d.frutas.push([x, this.y + 1, this.z - tam / 2]);
+      this.z -= tam;
+    }
+    this.z -= vao;
+    this.topoAnterior = this.y;
+    return this;
+  }
+
+  // Blocos alternando esquerda e direita.
+  zigueBlocos(n, { amp = 2.6, vao = 1.6, tam = 2.4, subida = 0 } = {}) {
+    let antes = this.topoAnterior;
+    for (let i = 0; i < n; i++) {
+      this.z -= vao;
+      const x = i % 2 ? amp : -amp;
+      const topo = this.y + subida * (i + 1);
+      this.d.plataformas.push({ pos: [x, topo - 0.4, this.z - tam / 2], tam: [tam, 0.8, tam], tipo: 'bloco' });
+      this.d.frutas.push([x, topo + 1, this.z - tam / 2]);
+      antes = topo;
+      this.z -= tam;
+    }
+    this.y += subida * n;
+    this.z -= vao;
+    this.topoAnterior = antes;
+    return this;
+  }
+
+  // Plataformas que tremem e desabam pouco depois de a Bia pisar (voltam depois de alguns segundos).
+  desabam(n, { vao = 1.3, tam = 2.6, x = 0, zigue = 1.8 } = {}) {
+    for (let i = 0; i < n; i++) {
+      this.z -= vao;
+      const px = x + (zigue ? (i % 2 ? zigue : -zigue) : 0);
+      this.d.moveis.push({ pos: [px, this.y - 0.25, this.z - tam / 2], tam: [tam, 0.5, tam], cai: true });
+      this.d.frutas.push([px, this.y + 1, this.z - tam / 2]);
+      this.z -= tam;
+    }
+    this.z -= vao;
+    this.topoAnterior = this.y;
+    return this;
+  }
+
+  // Esteira rolante no meio do chão: empurra a Bia (vel negativa = para a frente, positiva = para trás).
+  esteira(comp, { vel = 2.5, largura = 4, lateral = false } = {}) {
+    this.reto(comp);
+    this.d.esteiras.push({ pos: [0, this.yIni, this.ini - comp / 2], tam: [largura, comp - 1], empurra: lateral ? [vel, 0, 0] : [0, 0, vel] });
+    return this;
+  }
+
+  // Chão de gelo: escorrega (a Bia demora para frear e para virar).
+  gelo(comp, { largura = 8 } = {}) {
+    this.ini = this.z; this.yIni = this.y;
+    this.d.plataformas.push({ pos: [0, this.y - 2, this.z - comp / 2], tam: [largura, 4, comp], tipo: 'chao', gelo: true });
+    this.z -= comp;
+    this.topoAnterior = this.y;
+    return this;
+  }
+
+  // Campo de trampolins: caixas de som no chão, com flores e presentes lá no alto.
+  trampolins(n, { vao = 4.5, zigue = 0, presentes = true } = {}) {
+    this.reto((n + 1) * vao);
+    for (let i = 0; i < n; i++) {
+      const dz = (i + 1) * vao;
+      const x = zigue ? (i % 2 ? zigue : -zigue) : 0;
+      this.caixa('mola', x, dz);
+      this.d.frutas.push(...arco(this.p(x, dz, 1.5), this.p(x, dz + vao * 0.8, 1.5), 4, 5).slice(1, 4));
+      if (presentes && i % 2 === 0) this.caixaNoAr('comum', x, dz, 5.2);
+    }
+    return this;
+  }
+
   caixa(tipo, x, dz, andar = 0) {
     this.d.caixas.push({ tipo, pos: [x, this.yIni + 0.5 + andar, this.ini - dz] });
     return this;
@@ -107,7 +194,7 @@ export class Fase {
 
   pudim(x, dz, alt = 1) { this.d.pudins.push(this.p(x, dz, alt)); return this; }
   alianca(x, dz, alt = 1) { this.d.aliancas.push(this.p(x, dz, alt)); return this; }
-  placa(x, dz, texto) { this.d.placas.push({ pos: this.p(x, dz), texto }); return this; }
+  placa(x, dz, texto, icone = '') { this.d.placas.push({ pos: this.p(x, dz), texto, icone }); return this; }
 
   // Arena do chefão no fim do trecho atual (precisa de um reto largo antes).
   chefe(tipo = 'gerente') {

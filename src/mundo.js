@@ -1,7 +1,7 @@
 // Monta a fase a partir dos dados (src/fases/*.js) e cuida de tudo que não é a Bia:
 // colisões, caixas, flores, inimigos, goiabeiras, plataformas que se movem, chefão e chegada.
 import * as THREE from 'three';
-import { TEMAS, bloco, materiaisTema, placa } from './temas.js';
+import { TEMAS, bloco, materiaisTema, materiaisDe, placaFase } from './temas.js';
 import { criarCaixa, criarFlor, criarAlianca, criarPudim, criarChegada, criarPinheiro } from './modelos/itens.js';
 import { criarNoivo } from './modelos/noivo.js';
 import { criarMaquininha, animarMaquininha, criarCarretel, criarGoiaba, criarGoiabeira, criarFumaca, criarGnomo, animarGnomo } from './modelos/inimigos.js';
@@ -48,6 +48,7 @@ export class Mundo {
     this.montarColetaveis();
     this.montarInimigos();
     this.montarPlacas();
+    this.montarEsteiras();
     this.tema.fundo(this.raiz, this.zMin, this.zMax, this.rnd);
     for (const o of this.raiz.children) if (o.userData.animar && !this.animados.includes(o)) this.animados.push(o);
     this.chegada = criarChegada(!!fase.final);
@@ -71,7 +72,7 @@ export class Mundo {
     const dinamicos = new Set([
       ...this.caixas.map((c) => c.malha), ...this.flores.map((f) => f.malha), ...this.coletaveis.map((c) => c.malha),
       ...this.inimigos.map((i) => i.malha), ...this.moveis.map((m) => m.malha), ...this.animados,
-      this.chegada, this.noivo, this.chefe?.malha,
+      this.chegada, this.noivo, this.chefe?.malha, ...(this.esteiras ?? []).map((e) => e.malha),
     ].filter(Boolean));
     this.raiz.updateMatrixWorld(true);
     const inversa = this.raiz.matrixWorld.clone().invert();
@@ -126,10 +127,13 @@ export class Mundo {
     for (const p of this.fase.plataformas) {
       const [x, y, z] = p.pos, [w, h, d] = p.tam;
       const ehChao = p.tipo === 'chao';
-      const m = ehChao ? bloco(w, h, d, lado, topo) : bloco(w, h, d, ladoP, topoP);
+      const [ladoG, topoG] = p.gelo ? materiaisDe(lado === ladoP ? 'gelo' : 'neveLado', 'gelo') : [null, null];
+      const m = p.gelo ? bloco(w, h, d, ladoG, topoG) : ehChao ? bloco(w, h, d, lado, topo) : bloco(w, h, d, ladoP, topoP);
       m.position.set(x, y, z);
       this.raiz.add(m);
-      this.solidos.push(solido([x - w / 2, y - h / 2, z - d / 2], [x + w / 2, y + h / 2, z + d / 2], 'solo'));
+      const sol = solido([x - w / 2, y - h / 2, z - d / 2], [x + w / 2, y + h / 2, z + d / 2], 'solo');
+      if (p.gelo) sol.gelo = true;
+      this.solidos.push(sol);
       zMax = Math.max(zMax, z + d / 2);
       zMin = Math.min(zMin, z - d / 2);
       if (!ehChao) continue;
@@ -184,13 +188,14 @@ export class Mundo {
 
   montarMoveis() {
     const [lado, topo] = materiaisTema(this.tema, 'plataforma');
+    const [ladoR, topoR] = materiaisDe('rachado', 'rachado');
     for (const dado of this.fase.moveis ?? []) {
       const [w, h, d] = dado.tam;
-      const m = bloco(w, h, d, lado, topo);
+      const m = dado.cai ? bloco(w, h, d, ladoR, topoR) : bloco(w, h, d, lado, topo);
       this.raiz.add(m);
       const base = new THREE.Vector3(...dado.pos);
       const movel = { malha: m, base, desloca: new THREE.Vector3(...(dado.desloca ?? [0, 0, 0])), vel: dado.vel ?? 0, fase: dado.fase ?? 0,
-        tam: new THREE.Vector3(w, h, d), atual: base.clone(), delta: new THREE.Vector3() };
+        tam: new THREE.Vector3(w, h, d), atual: base.clone(), delta: new THREE.Vector3(), cai: !!dado.cai, estado: 'parado', timer: 0, vy: 0 };
       movel.solido = solido([0, 0, 0], [0, 0, 0], 'movel', movel);
       this.solidos.push(movel.solido);
       this.moveis.push(movel);
@@ -265,9 +270,9 @@ export class Mundo {
 
   montarPlacas() {
     for (const p of this.fase.placas ?? []) {
-      const pl = placa(p.texto, { largura: 2.2, altura: 1.1, poste: 1.2, fundo: '#fff3e6', cor: '#7a3b1e' });
+      const pl = placaFase(p.texto, p.icone, this.fase.tema);
       pl.position.set(...p.pos);
-      pl.rotation.y = 0.35;
+      pl.rotation.y = p.pos[0] < 0 ? 0.4 : -0.4;
       this.raiz.add(pl);
     }
   }
@@ -423,9 +428,59 @@ export class Mundo {
 
   // ---------- atualização ----------
 
-  atualizarMoveis(dt) {
+  atualizarMoveis(dt, jogador) {
     this.tempo += dt;
-    for (const m of this.moveis) this.posicionarMovel(m, this.tempo);
+    for (const m of this.moveis) {
+      if (m.cai) this.atualizarDesaba(m, dt, jogador);
+      else this.posicionarMovel(m, this.tempo);
+    }
+  }
+
+  // Plataforma que desaba: treme, cai, some e volta depois de uns segundos.
+  atualizarDesaba(m, dt, jogador) {
+    const anterior = m.atual.clone();
+    if (m.estado === 'parado') {
+      if (jogador && jogador.chaoAtual === m.solido) { m.estado = 'treme'; m.timer = 0.5; som.pavio(); }
+    } else if (m.estado === 'treme') {
+      m.timer -= dt;
+      m.malha.position.x = m.atual.x + Math.sin(this.tempo * 60) * 0.05;
+      if (m.timer <= 0) { m.estado = 'cai'; m.vy = 0; m.malha.position.x = m.atual.x; }
+    } else if (m.estado === 'cai') {
+      m.vy -= AJUSTES.gravidade * 0.7 * dt;
+      m.atual.y += m.vy * dt;
+      if (m.atual.y < m.base.y - 14) { m.estado = 'sumiu'; m.timer = 3; m.solido.ativo = false; m.malha.visible = false; }
+    } else if (m.estado === 'sumiu') {
+      m.timer -= dt;
+      if (m.timer <= 0) { m.estado = 'parado'; m.atual.copy(m.base); m.solido.ativo = true; m.malha.visible = true; }
+    }
+    m.delta.subVectors(m.atual, anterior);
+    if (m.estado !== 'treme') m.malha.position.copy(m.atual);
+    m.solido.min.copy(m.atual).addScaledVector(m.tam, -0.5);
+    m.solido.max.copy(m.atual).addScaledVector(m.tam, 0.5);
+  }
+
+  montarEsteiras() {
+    this.esteiras = [];
+    for (const e of this.fase.esteiras ?? []) {
+      const [x, y, z] = e.pos, [w, d] = e.tam;
+      const tex = materiaisDe('esteira', 'esteira')[1].map.clone();
+      tex.needsUpdate = true;
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(1, d / 2);
+      if (e.empurra[0]) tex.rotation = Math.PI / 2;
+      if (e.empurra[2] > 0 || e.empurra[0] > 0) tex.rotation += Math.PI;
+      const malha = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshLambertMaterial({ map: tex }));
+      malha.rotation.x = -Math.PI / 2;
+      malha.position.set(x, y + 0.015, z);
+      malha.receiveShadow = true;
+      this.raiz.add(malha);
+      for (const s of [-1, 1]) {
+        const borda = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.12, d), toon(0xffd166));
+        borda.position.set(x + s * (w / 2 + 0.1), y + 0.06, z);
+        this.raiz.add(borda);
+      }
+      this.esteiras.push({ min: [x - w / 2, z - d / 2], max: [x + w / 2, z + d / 2], y, empurra: new THREE.Vector3(...e.empurra), tex, malha });
+    }
   }
 
   // Encosta em algo perigoso: decide entre derrotar o inimigo, quicar ou levar dano.
@@ -443,6 +498,15 @@ export class Mundo {
   atualizar(dt, jogador) {
     const centro = jogador.pos.clone().add(new THREE.Vector3(0, 0.55, 0));
     const t = this.tempo;
+
+    // Esteiras: a faixa anda e empurra a Bia quando ela está em cima.
+    for (const e of this.esteiras) {
+      e.tex.offset.y -= dt * Math.hypot(e.empurra.x, e.empurra.z) / 2;
+      const p = jogador.pos;
+      if (!jogador.morto && jogador.noChao && Math.abs(p.y - e.y) < 0.15 && p.x > e.min[0] && p.x < e.max[0] && p.z > e.min[1] && p.z < e.max[1]) {
+        p.addScaledVector(e.empurra, dt);
+      }
+    }
 
     for (const o of this.animados) o.userData.animar(t);
 

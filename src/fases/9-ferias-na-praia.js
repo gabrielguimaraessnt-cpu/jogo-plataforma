@@ -5,30 +5,25 @@ import { Fase } from './construtor.js';
 const f = new Fase({ numero: 9, nome: 'Férias na Praia', tema: 'ferias',
   descricao: 'Fase bônus: férias! Sem bichinhos e sem perder vida. Junte as flores e abra todos os presentes.' });
 
-f.reto(30)
-  .placa(-3.4, 3, ['Férias!', 'Fase bônus'])
-  .zigue(3, 28, 12)
+f.reto(28)
+  .placa(-3.4, 3, ['Férias!', 'Protetor solar: ok'], '🏖️')
+  .zigue(3, 26, 10)
   .caixa('comum', -2.5, 6).caixa('comum', 2.5, 6).pilha('comum', 0, 10, 3)
   .caixa('tesouro', -3, 14).caixa('vida', 3, 14)
-  .caixa('mola', 0, 19).caixaNoAr('tesouro', 0, 19, 5)
-  .pilha('comum', -3, 24, 2).pilha('comum', 3, 24, 2).caixa('comum', 0, 27);
-f.buraco(4);
-f.reto(24)
+  .pilha('comum', -3, 22, 2).pilha('comum', 3, 22, 2).caixa('comum', 0, 25);
+f.ponte(14, { largura: 3 });
+f.trampolins(5, { zigue: 2.5 });
+f.reto(20)
   .caixa('checkpoint', 0, 3)
-  .linha(-3, 5, -3, 21, 6).linha(3, 5, 3, 21, 6).linha(0, 5, 0, 21, 6)
-  .pilha('comum', -1.5, 9, 2).pilha('comum', 1.5, 9, 2)
-  .caixa('mola', -3, 14).caixaNoAr('comum', -3, 14, 5).caixaNoAr('comum', -3, 16, 5)
-  .caixa('mola', 3, 14).caixaNoAr('vida', 3, 14, 5)
-  .caixa('tesouro', 0, 19);
+  .placa(3.4, 4, ['Água de coco', 'grátis até as 17h'], '🥥')
+  .linha(-3, 5, -3, 17, 5).linha(3, 5, 3, 17, 5)
+  .pilha('comum', -1.5, 8, 2).pilha('comum', 1.5, 8, 2)
+  .caixa('tesouro', 0, 14);
 f.moveis(3, { eixo: 'x', amp: 5, vel: 0.3 });
-f.reto(22)
+f.zigueBlocos(5, { amp: 2.6, subida: 0.4 });
+f.reto(32)
   .caixa('checkpoint', 0, 3)
-  .zigue(5, 20, 10, 3)
-  .pilha('comum', -3, 8, 3).pilha('comum', 3, 8, 3).pilha('comum', 0, 12, 4)
-  .caixa('tesouro', -2, 17).caixa('tesouro', 2, 17);
-f.pedras([[0, 0.8], [-2.5, 1.6], [2.5, 2.4], [0, 3.2]]);
-f.subir(3.4).reto(32)
-  .caixa('checkpoint', 0, 3)
+  .placa(-3.4, 5, ['Pôr do sol', 'mais lindo do Brasil'], '🌅')
   .linha(-3, 5, -3, 28, 8).linha(3, 5, 3, 28, 8)
   .caixa('mola', 0, 7).caixaNoAr('tesouro', 0, 7, 5).caixaNoAr('comum', 0, 9, 5)
   .pilha('comum', -2, 13, 2).pilha('comum', 2, 13, 2)

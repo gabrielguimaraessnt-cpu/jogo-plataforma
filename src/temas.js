@@ -106,6 +106,22 @@ const pintores = {
     for (let y = 0; y < h; y += 16) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
     g.fillStyle = '#ffd166'; g.fillRect(0, 0, w, 4);
   },
+  rachado: (g, w, h) => {
+    g.fillStyle = '#c9b79c'; g.fillRect(0, 0, w, h);
+    salpicar(g, w, h, 120, ['#b5a387', '#d8c8ae'], 3, aleatorio(41));
+    g.strokeStyle = '#5c4a3a'; g.lineWidth = 2;
+    const rnd = aleatorio(42);
+    for (let k = 0; k < 5; k++) {
+      g.beginPath(); let x = rnd() * w, y = rnd() * h; g.moveTo(x, y);
+      for (let i = 0; i < 4; i++) { x += (rnd() - 0.5) * 24; y += (rnd() - 0.5) * 24; g.lineTo(x, y); }
+      g.stroke();
+    }
+  },
+  esteira: (g, w, h) => {
+    g.fillStyle = '#2b2d42'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#ffd166';
+    for (let y = 0; y < h; y += 16) { g.beginPath(); g.moveTo(w * 0.2, y + 12); g.lineTo(w / 2, y + 2); g.lineTo(w * 0.8, y + 12); g.lineTo(w * 0.65, y + 12); g.lineTo(w / 2, y + 7); g.lineTo(w * 0.35, y + 12); g.fill(); }
+  },
   areia: (g, w, h) => {
     g.fillStyle = '#f4dba5'; g.fillRect(0, 0, w, h);
     salpicar(g, w, h, 260, ['#ecd092', '#f8e6bd', '#e3c27e', '#fff1cf'], 2, aleatorio(31));
@@ -1150,6 +1166,66 @@ TEMAS.ferias = {
     }
   },
 };
+
+// ---------- Plaquinhas das fases ----------
+// Placa de madeira arredondada, com a cor do mundo, ícone, texto em duas linhas e florzinhas no pé.
+const ESTILO_PLACA = {
+  familia:   { madeira: 0x9c6644, fundo: '#fff8ec', borda: '#9c6644', texto: '#6b3b12', flor: 0xff4d6d },
+  igreja:    { madeira: 0x5a3e6b, fundo: '#f7f0ff', borda: '#7b2cbf', texto: '#3c096c', flor: 0xffd166 },
+  atelie:    { madeira: 0xd291bc, fundo: '#fff0f6', borda: '#e0457b', texto: '#8a1c4a', flor: 0xff8fab },
+  rodizio:   { madeira: 0x9d0208, fundo: '#fff7e6', borda: '#9d0208', texto: '#6a040f', flor: 0xffb703 },
+  fitdance:  { madeira: 0x240046, fundo: '#1b1035', borda: '#ff4ecd', texto: '#3ef0ff', flor: 0x3ef0ff, brilho: true },
+  loja:      { madeira: 0x495057, fundo: '#fffbe6', borda: '#d62828', texto: '#1d3557', flor: 0xffd60a },
+  natal:     { madeira: 0x7f2c1b, fundo: '#fffaf5', borda: '#c1121f', texto: '#1b5e3a', flor: 0xd62828, neve: true },
+  casamento: { madeira: 0xf1e3d3, fundo: '#fffdf8', borda: '#e9c46a', texto: '#9d174d', flor: 0xffffff },
+  ferias:    { madeira: 0xd4a373, fundo: '#fffaf0', borda: '#0096c7', texto: '#005f73', flor: 0xff4d6d },
+};
+
+export function placaFase(texto, icone, temaNome) {
+  const e = ESTILO_PLACA[temaNome] ?? ESTILO_PLACA.familia;
+  const g = new THREE.Group();
+  const madeira = toon(e.madeira);
+  g.add(malha(new THREE.CylinderGeometry(0.08, 0.1, 1.5, 8), madeira, 0, 0.75, 0));
+  g.add(malha(caixaArredondada(2.5, 1.25, 0.16, 0.05), madeira, 0, 1.95, 0));
+  const linhas = [].concat(texto);
+  const tex = textura(256, (c, w, h) => {
+    c.fillStyle = e.fundo; c.fillRect(0, 0, w, h);
+    c.strokeStyle = e.borda; c.lineWidth = 10; c.setLineDash([18, 10]);
+    c.strokeRect(14, 14, w - 28, h - 28);
+    c.setLineDash([]);
+    const temIcone = !!icone;
+    if (temIcone) { c.font = '96px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(icone, 82, h / 2 + 4); }
+    c.fillStyle = e.texto; c.textAlign = temIcone ? 'left' : 'center'; c.textBaseline = 'middle';
+    const x = temIcone ? 150 : w / 2;
+    const maxW = w - x - (temIcone ? 26 : w / 2 - 26);
+    linhas.forEach((l, i) => {
+      let tam = i === 0 ? 62 : 48;
+      do { c.font = `${i === 0 ? 800 : 600} ${tam}px "Baloo 2","Trebuchet MS",sans-serif`; tam -= 2; } while (c.measureText(l).width > (temIcone ? w - x - 30 : maxW * 2) && tam > 20);
+      c.fillText(l, x, h / 2 + (i - (linhas.length - 1) / 2) * 76);
+    });
+  }, { largura: 512, suave: true });
+  const frente = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 1.12),
+    e.brilho ? new THREE.MeshBasicMaterial({ map: tex }) : new THREE.MeshLambertMaterial({ map: tex }));
+  frente.position.set(0, 1.95, 0.1);
+  frente.userData.semContorno = true;
+  g.add(frente);
+  if (e.neve) {
+    const neve = malha(caixaArredondada(2.6, 0.16, 0.24, 0.07), toon(0xffffff), 0, 2.6, 0);
+    g.add(neve);
+  }
+  // florzinhas no pé da placa
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2;
+    const flor = criarFlor(e.flor);
+    flor.scale.setScalar(0.55);
+    flor.position.set(Math.cos(a) * 0.35, 0.12, Math.sin(a) * 0.35);
+    g.add(flor);
+  }
+  contornar(g, 0.012);
+  return g;
+}
+
+export function materiaisDe(lado, topo) { return [matChao(lado), matChao(topo)]; }
 
 export function materiaisTema(tema, qual = 'chao') {
   const [lado, topo] = tema[qual];

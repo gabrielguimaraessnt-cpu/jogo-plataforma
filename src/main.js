@@ -643,7 +643,7 @@ function quadro(agora) {
     acumulado += dt;
     let passos = 0;
     while (acumulado >= PASSO && passos < 12) {
-      mundo.atualizarMoveis(PASSO);
+      mundo.atualizarMoveis(PASSO, jogador);
       jogador.passo(PASSO, entrada, mundo);
       mundo.atualizar(PASSO, jogador);
       entrada.pulou = false;
@@ -723,6 +723,8 @@ const temToque = iniciarToque();
 datasEspeciais();
 await carregarExternos();
 await carregarMinhasMusicas();
+// Espera a fonte das placas carregar (no máximo 1,5 s) para os textos saírem bonitos.
+await Promise.race([document.fonts?.ready, new Promise((ok) => setTimeout(ok, 1500))]);
 montarFase(0);
 estado = 'menu';
 mostrarJogadorAtual();
