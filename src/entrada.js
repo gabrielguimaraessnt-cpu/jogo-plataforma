@@ -96,6 +96,7 @@ export function iniciarToque() {
   const area = document.getElementById('toque');
   const ehToque = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
   if (!ehToque) return false;
+  iniciarJoystick();
   for (const botao of area.querySelectorAll('[data-tecla]')) {
     const nome = botao.dataset.tecla;
     const liga = (e) => { e.preventDefault(); toque.add(nome); apertar(nome); botao.classList.add('ativo'); };
@@ -106,6 +107,53 @@ export function iniciarToque() {
     botao.addEventListener('pointerleave', desliga);
   }
   return true;
+}
+
+// Joystick na tela: o dedo encosta em qualquer ponto da metade esquerda, o joystick aparece ali
+// e arrastar para qualquer lado (inclusive na diagonal) anda naquela direção.
+let eixoToque = null;
+function iniciarJoystick() {
+  const zona = document.getElementById('zona-joystick');
+  const base = document.getElementById('joystick');
+  const pino = base.querySelector('.pino');
+  const RAIO = 55;
+  let dedo = null, centro = null;
+  // Com o celular em pé a página está girada 90°: converte o toque para o "papel" girado.
+  const local = (e) => document.body.classList.contains('girado')
+    ? { x: e.clientY, y: innerWidth - e.clientX } : { x: e.clientX, y: e.clientY };
+  const repousar = () => {
+    base.classList.remove('ativo');
+    base.style.left = ''; base.style.top = '';
+    pino.style.transform = '';
+    eixoToque = null;
+    dedo = null;
+  };
+  zona.addEventListener('pointerdown', (e) => {
+    if (dedo !== null) return;
+    e.preventDefault();
+    dedo = e.pointerId;
+    zona.setPointerCapture?.(e.pointerId);
+    const caixa = zona.getBoundingClientRect();
+    const p = local(e);
+    const origem = document.body.classList.contains('girado') ? { x: caixa.top, y: innerWidth - caixa.right } : { x: caixa.left, y: caixa.top };
+    centro = p;
+    base.style.left = `${p.x - origem.x}px`;
+    base.style.top = `${p.y - origem.y}px`;
+    base.classList.add('ativo');
+    eixoToque = { x: 0, z: 0 };
+  });
+  zona.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== dedo) return;
+    e.preventDefault();
+    const p = local(e);
+    let dx = p.x - centro.x, dy = p.y - centro.y;
+    const d = Math.hypot(dx, dy);
+    if (d > RAIO) { dx *= RAIO / d; dy *= RAIO / d; }
+    pino.style.transform = `translate(${dx}px, ${dy}px)`;
+    const forca = Math.min(d / RAIO, 1);
+    eixoToque = forca < 0.18 ? { x: 0, z: 0 } : { x: (dx / RAIO), z: (dy / RAIO) };
+  });
+  for (const ev of ['pointerup', 'pointercancel']) zona.addEventListener(ev, (e) => { if (e.pointerId === dedo) repousar(); });
 }
 
 // Controle (Xbox/PlayStation): A pula, X/Quadrado gira, Start pausa.
@@ -147,6 +195,7 @@ export function lerEntrada() {
   let x = (ativa('direita') ? 1 : 0) - (ativa('esquerda') ? 1 : 0);
   let z = (ativa('baixo') ? 1 : 0) - (ativa('cima') ? 1 : 0);
   if (eixos.x || eixos.y) { x = eixos.x; z = eixos.y; }
+  if (eixoToque && (eixoToque.x || eixoToque.z)) { x = eixoToque.x; z = eixoToque.z; }
   const tamanho = Math.hypot(x, z);
   if (tamanho > 1) { x /= tamanho; z /= tamanho; }
   const estado = {
