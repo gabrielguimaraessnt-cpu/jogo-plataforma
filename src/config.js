@@ -32,8 +32,9 @@ export const TODAS_LIBERADAS = true;
 export const AJUSTES = {
   vidasIniciais: 10,
   velocidade: 7.5,        // metros por segundo correndo
-  aceleracao: 60,
-  atritoNoAr: 0.35,       // 1 = controla no ar igual ao chão
+  aceleracao: 95,         // quão rápido ela chega na velocidade máxima
+  frenagem: 170,          // quão rápido ela para ao soltar a tecla (maior = para na hora)
+  atritoNoAr: 0.6,        // 1 = controla no ar igual ao chão
   forcaPulo: 11.5,
   gravidade: 32,
   pulinhoCaixa: 10,       // impulso ao pisar numa caixa

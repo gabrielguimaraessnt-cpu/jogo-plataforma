@@ -111,10 +111,16 @@ export class Jogador {
     if (this.chaoAtual?.tipo === 'movel') this.pos.add(this.chaoAtual.dono.delta);
 
     // Andar
+    // Responde na hora: acelera rápido e, ao soltar ou virar para o outro lado, freia ainda mais rápido.
     const alvoX = entrada.x * AJUSTES.velocidade, alvoZ = entrada.z * AJUSTES.velocidade;
-    const acel = AJUSTES.aceleracao * (this.noChao ? 1 : AJUSTES.atritoNoAr) * dt;
-    this.vel.x = aproximar(this.vel.x, alvoX, acel);
-    this.vel.z = aproximar(this.vel.z, alvoZ, acel);
+    const gelo = this.noChao && this.chaoAtual?.gelo;
+    const fator = gelo ? 0.18 : this.noChao ? 1 : AJUSTES.atritoNoAr;
+    const passoEixo = (atual, alvo) => {
+      const freando = alvo === 0 || Math.sign(alvo) !== Math.sign(atual);
+      return (freando ? AJUSTES.frenagem : AJUSTES.aceleracao) * fator * dt;
+    };
+    this.vel.x = aproximar(this.vel.x, alvoX, passoEixo(this.vel.x, alvoX));
+    this.vel.z = aproximar(this.vel.z, alvoZ, passoEixo(this.vel.z, alvoZ));
     if (entrada.x || entrada.z) this.direcao = Math.atan2(entrada.x, entrada.z);
 
     // Pular

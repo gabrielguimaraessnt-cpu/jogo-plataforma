@@ -10,16 +10,16 @@ const PENTA = [0, 2, 4, 7, 9];
 // Estilos: 'funkpop' (groove dançante de baixo, guitarrinha e metais), 'house' e 'eletronica' (batida reta),
 // 'louvor' (banda da igreja), 'natal', 'tensa' e 'romantica'. Tudo composto aqui, nada copiado.
 const TRILHAS = {
-  menu:      { bpm: 112, raiz: 57, escala: MENOR, acordes: [0, 3, 5, 4], estilo: 'funkpop', lead: 'square', semente: 11 },
-  familia:   { bpm: 114, raiz: 60, escala: MAIOR, acordes: [0, 4, 5, 3], estilo: 'funkpop', lead: 'square', semente: 2 },
-  igreja:    { bpm: 92, raiz: 55, escala: MAIOR, acordes: [0, 4, 5, 3, 0, 4, 3, 4], estilo: 'louvor', lead: 'triangle', semente: 3 },
+  menu:      { bpm: 112, raiz: 57, escala: MENOR, acordes: [0, 3, 5, 4], estilo: 'funkpop', lead: 'square', semente: 11 , arquivo: 'assets/musicas/menu.mp3' },
+  familia:   { bpm: 114, raiz: 60, escala: MAIOR, acordes: [0, 4, 5, 3], estilo: 'funkpop', lead: 'square', semente: 2 , arquivo: 'assets/musicas/familia.mp3' },
+  igreja:    { bpm: 92, raiz: 55, escala: MAIOR, acordes: [0, 4, 5, 3, 0, 4, 3, 4], estilo: 'louvor', lead: 'triangle', semente: 3 , arquivo: 'assets/musicas/igreja.mp3' },
   natal:     { bpm: 120, raiz: 62, escala: MAIOR, acordes: [0, 3, 4, 0, 5, 1, 4, 0], estilo: 'natal', lead: 'sine', semente: 9 },
-  atelie:    { bpm: 120, raiz: 62, escala: MAIOR, acordes: [0, 5, 1, 4], estilo: 'house', lead: 'triangle', semente: 4 },
-  rodizio:   { bpm: 116, raiz: 62, escala: PENTA, acordes: [0, 3, 0, 4], estilo: 'funkpop', lead: 'triangle', semente: 5 },
-  fitdance:  { bpm: 128, raiz: 57, escala: MENOR, acordes: [0, 5, 2, 6], estilo: 'eletronica', lead: 'sawtooth', semente: 6 },
-  loja:      { bpm: 132, raiz: 52, escala: MENOR, acordes: [0, 0, 5, 4], estilo: 'tensa', lead: 'square', semente: 7 },
+  atelie:    { bpm: 120, raiz: 62, escala: MAIOR, acordes: [0, 5, 1, 4], estilo: 'house', lead: 'triangle', semente: 4 , arquivo: 'assets/musicas/atelie.mp3' },
+  rodizio:   { bpm: 116, raiz: 62, escala: PENTA, acordes: [0, 3, 0, 4], estilo: 'funkpop', lead: 'triangle', semente: 5 , arquivo: 'assets/musicas/rodizio.mp3' },
+  fitdance:  { bpm: 128, raiz: 57, escala: MENOR, acordes: [0, 5, 2, 6], estilo: 'eletronica', lead: 'sawtooth', semente: 6 , arquivo: 'assets/musicas/fitdance.mp3' },
+  loja:      { bpm: 132, raiz: 52, escala: MENOR, acordes: [0, 0, 5, 4], estilo: 'tensa', lead: 'square', semente: 7 , arquivo: 'assets/musicas/loja.mp3' },
   ferias:    { bpm: 112, raiz: 60, escala: PENTA, acordes: [0, 3, 4, 0], estilo: 'house', lead: 'triangle', semente: 12 },
-  casamento: { bpm: 76, raiz: 60, escala: MAIOR, acordes: [0, 4, 5, 3, 0, 3, 4, 4], estilo: 'romantica', lead: 'sine', semente: 8 },
+  casamento: { bpm: 76, raiz: 60, escala: MAIOR, acordes: [0, 4, 5, 3, 0, 3, 4, 4], estilo: 'romantica', lead: 'sine', semente: 8 , arquivo: 'assets/musicas/casamento.mp3' },
 };
 
 const freq = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
@@ -211,8 +211,27 @@ export function tocarMusica(nome) {
   iniciar();
 }
 
+// Músicas em arquivo (domínio público, ver assets/musicas/LICENCA.md). Se o arquivo não carregar,
+// cai na trilha composta pelo próprio jogo.
+const faixa = new Audio();
+faixa.loop = true;
+faixa.volume = 0.5;
+faixa.preload = 'auto';
+let faixaFalhou = new Set();
+faixa.addEventListener('error', () => {
+  if (!atual?.tr.arquivo) return;
+  faixaFalhou.add(atual.tr.arquivo);
+  iniciar();
+});
+
 function iniciar() {
   if (!atual || relogio || usandoMinhas()) return;
+  if (atual.tr.arquivo && !faixaFalhou.has(atual.tr.arquivo)) {
+    faixa.muted = estaMudo();
+    if (!faixa.src.endsWith(atual.tr.arquivo)) faixa.src = atual.tr.arquivo;
+    faixa.play().catch(() => {});
+    return;
+  }
   let c;
   try { c = contexto(); } catch { return; }
   mestre = c.createGain();
@@ -231,6 +250,7 @@ function iniciar() {
 }
 
 export function pararMusica() {
+  faixa.pause();
   clearInterval(relogio);
   relogio = null;
   if (mestre) { const m = mestre; try { m.gain.setTargetAtTime(0, m.context.currentTime, 0.05); setTimeout(() => m.disconnect(), 300); } catch {} }
@@ -239,6 +259,7 @@ export function pararMusica() {
 
 quandoMudarSom((mudo) => {
   player.muted = mudo;
+  faixa.muted = mudo;
   if (mudo) pararMusica(); else if (usandoMinhas()) tocarLista(); else iniciar();
 });
 
@@ -338,4 +359,8 @@ export function proximaMusica() {
 
 player.addEventListener('ended', proximaMusica);
 // O navegador só deixa tocar depois de um toque/tecla: tenta de novo no primeiro gesto.
-for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => { if (usandoMinhas() && player.paused && !estaMudo()) tocarLista(); });
+for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => {
+  if (estaMudo()) return;
+  if (usandoMinhas()) { if (player.paused) tocarLista(); }
+  else if (atual?.tr.arquivo && !faixaFalhou.has(atual.tr.arquivo) && faixa.paused) iniciar();
+});
