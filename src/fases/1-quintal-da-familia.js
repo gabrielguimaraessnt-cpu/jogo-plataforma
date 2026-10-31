@@ -9,7 +9,8 @@ f.reto(30)
   .linha(0, 6, 0, 15, 4)
   .caixa('comum', -2, 8).caixa('comum', 2, 11).pilha('comum', 0, 17, 2)
   .inimigo('maquininha', -3, 3, 22, 2)
-  .pudim(2.5, 26);
+  .pudim(2.5, 26)
+  .caixa('tesouro', -3.5, 11); // caixa dourada: +15 flores
 f.buraco(4);
 f.reto(24)
   .caixa('checkpoint', 0, 3)
@@ -37,6 +38,7 @@ f.subir(1.4).reto(28)
   .pilha('comum', -2, 15, 2).pilha('comum', 2, 15, 2)
   .inimigo('maquininha', -3, 3, 19, 3)
   .linha(-3, 14, -3, 24, 4).linha(3, 14, 3, 24, 4)
+  .caixa('vida', 3.5, 4) // caixa do coração: +1 vida
   .fim(25);
 
 const dados = f.pronto();

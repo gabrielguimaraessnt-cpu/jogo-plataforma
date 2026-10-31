@@ -110,6 +110,49 @@ export function criarCarretel(cor = VILAO.corPrincipal) {
   return g;
 }
 
+// Gnomo de Natal travesso (substitui os carretéis no mundo do Natal).
+export function criarGnomo() {
+  const g = new THREE.Group();
+  const corpo = new THREE.Group();
+  g.add(corpo);
+  const roupa = malha(new THREE.ConeGeometry(0.34, 0.55, 16), toon(0x2d6a4f), 0, 0.38, 0);
+  corpo.add(roupa);
+  corpo.add(malha(new THREE.TorusGeometry(0.3, 0.04, 6, 18), toon(0x6b4226), 0, 0.22, 0));
+  corpo.children[1].rotation.x = Math.PI / 2;
+  corpo.add(malha(new THREE.SphereGeometry(0.06, 8, 6), toon(0xffd166), 0, 0.22, 0.3));
+  const barba = malha(new THREE.ConeGeometry(0.21, 0.42, 14), toon(0xf8f9fa), 0, 0.47, 0.12);
+  barba.rotation.x = Math.PI + 0.25;
+  corpo.add(barba);
+  const nariz = malha(new THREE.SphereGeometry(0.075, 10, 8), toon(0xf4a6a6), 0, 0.7, 0.22);
+  corpo.add(nariz);
+  const gorro = malha(new THREE.ConeGeometry(0.24, 0.62, 14), toon(0xc1121f), 0, 1.2, 0);
+  gorro.rotation.z = 0.25;
+  corpo.add(gorro);
+  corpo.add(malha(new THREE.TorusGeometry(0.22, 0.05, 6, 18), toon(0xffffff), 0, 0.9, 0));
+  corpo.children[corpo.children.length - 1].rotation.x = Math.PI / 2;
+  corpo.add(malha(new THREE.SphereGeometry(0.07, 8, 6), toon(0xffffff), -0.15, 1.47, 0));
+  corpo.add(malha(new THREE.SphereGeometry(0.2, 14, 10), toon(0xf6c9a8), 0, 0.78, 0.02));
+  olhosBravos(corpo, 0, 0.8, 0.2, 0.6);
+  const pes = [];
+  for (const lado of [-1, 1]) {
+    const pe = malha(new THREE.SphereGeometry(0.08, 8, 6), toon(0x3d2817), lado * 0.13, 0.06, 0.05);
+    pe.scale.set(1, 0.6, 1.5);
+    g.add(pe);
+    pes.push(pe);
+  }
+  contornar(g, 0.012);
+  g.userData = { corpo, pes, tipo: 'gnomo' };
+  return g;
+}
+
+export function animarGnomo(m, t) {
+  const { corpo, pes } = m.userData;
+  corpo.rotation.z = Math.sin(t * 10) * 0.12;
+  corpo.position.y = Math.abs(Math.sin(t * 10)) * 0.05;
+  pes[0].position.z = 0.05 + Math.sin(t * 10) * 0.08;
+  pes[1].position.z = 0.05 - Math.sin(t * 10) * 0.08;
+}
+
 // Goiaba: perigo. Não dá para derrotar, só desviar.
 export function criarGoiaba() {
   const g = new THREE.Group();

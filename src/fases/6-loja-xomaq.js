@@ -14,6 +14,7 @@ f.buraco(4);
 f.reto(22)
   .caixa('checkpoint', 0, 3)
   .pudim(-3, 6)
+  .caixa('tesouro', -3.5, 11) // caixa dourada: +15 flores
   .inimigo('maquininha', -3, 3, 9, 4)
   .caixa('explosiva', -2, 13).caixa('explosiva', 0, 13).caixa('explosiva', 2, 13)
   .inimigo('carretel', 3, -3, 17, 4.5)
@@ -29,6 +30,7 @@ f.subir(2.4).reto(16)
   .caixa('checkpoint', 0, 3)
   .pudim(0, 7)
   .placa(-3.4, 10, ['Sala do', 'GERENTE'])
+  .caixa('vida', 3.5, 4) // caixa do coração: +1 vida
   .linha(0, 9, 0, 14, 3);
 f.chefe('gerente');
 

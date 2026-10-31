@@ -34,6 +34,16 @@ function tecidoAzul() {
   }, { repetir: true, suave: true });
 }
 
+function tecidoRenda() {
+  return textura(128, (g, w, h) => {
+    const rnd = aleatorio(17);
+    g.fillStyle = '#fffdf8'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 40; i++) desenharFlor(g, rnd() * w, rnd() * h, 5 + rnd() * 4, '#f1ece4', '#e8e0d4', 6);
+    g.strokeStyle = 'rgba(220,210,200,0.5)'; g.lineWidth = 1;
+    for (let i = 0; i < 12; i++) { g.beginPath(); g.arc(rnd() * w, rnd() * h, 6 + rnd() * 8, 0, Math.PI); g.stroke(); }
+  }, { repetir: true, suave: true });
+}
+
 function tecidoVerde() {
   return textura(64, (g, w, h) => {
     g.fillStyle = '#56722f'; g.fillRect(0, 0, w, h);
@@ -65,6 +75,7 @@ export const ROUPAS = {
   florido: { nome: 'Vestido florido', tecido: tecidoFlorido, manga: 'flare', barra: 0.42, cinto: null, repete: [9, 2] },
   verde: { nome: 'Vestido verde longo', tecido: tecidoVerde, manga: 'longa', barra: 0.1, cinto: 0x3f5622, repete: [6, 1] },
   azul: { nome: 'Vestido azul floral', tecido: tecidoAzul, manga: 'curta', barra: 0.3, cinto: null, repete: [6, 2] },
+  noiva: { nome: 'Vestido de noiva', tecido: tecidoRenda, manga: 'curta', barra: 0.03, cinto: 0xf1e3d3, repete: [6, 2], noiva: true },
   jaqueta: { nome: 'Jaqueta de couro e jeans', tecido: tecidoCouro, manga: 'longa', barra: 0.6, cinto: 0x5c4033, repete: [4, 2], calca: tecidoJeans },
 };
 
@@ -143,7 +154,10 @@ export function criarBia(roupaEscolhida = 'florido') {
     corpo.add(malha(torno(perfilTronco), tecido));
     const barra = roupa.barra;
     const meio = (0.74 + barra) / 2;
-    saia = malha(torno([[0.37 + (0.42 - barra) * 0.2, barra], [0.35, barra + 0.03], [0.31, meio - 0.05], [0.26, meio + 0.06], [0.215, 0.7], [0.2, 0.76]]), tecido);
+    saia = roupa.noiva
+      // saia rodada de noiva, até o chão
+      ? malha(torno([[0.52, 0.02], [0.5, 0.08], [0.43, 0.26], [0.33, 0.48], [0.24, 0.66], [0.2, 0.76]], 36), tecido)
+      : malha(torno([[0.37 + (0.42 - barra) * 0.2, barra], [0.35, barra + 0.03], [0.31, meio - 0.05], [0.26, meio + 0.06], [0.215, 0.7], [0.2, 0.76]]), tecido);
   }
   corpo.add(saia);
   if (roupa.cinto) {
@@ -256,6 +270,32 @@ export function criarBia(roupaEscolhida = 'florido') {
       pts.push([lado * (0.18 + t * 0.06), 0.02 - t * 0.5, 0.06 + t * 0.06 + Math.sin(t * 7) * 0.02]);
     }
     cabeloGrupo.add(malha(tuboOndulado(pts, 0.045), cabelo));
+  }
+
+  if (roupa.noiva) {
+    // tiara, véu e buquê
+    const tiara = malha(new THREE.TorusGeometry(0.17, 0.012, 6, 24, Math.PI), ouro, 0, 0.14, 0.02);
+    tiara.rotation.x = -0.5;
+    cabeca.add(tiara);
+    for (let i = 0; i < 5; i++) {
+      const a = Math.PI * (0.2 + i * 0.15);
+      cabeca.add(malha(new THREE.OctahedronGeometry(0.02 + (i === 2 ? 0.012 : 0), 0), toon(0xe0fbfc, { emissive: 0x99ccdd, emissiveIntensity: 0.6 }), Math.cos(a) * 0.17, 0.14 + Math.sin(a) * 0.17 * 0.88, 0.02 - Math.sin(a) * 0.17 * 0.48));
+    }
+    const veu = new THREE.Mesh(
+      new THREE.LatheGeometry([[0.16, 0.16], [0.24, 0.0], [0.3, -0.3], [0.36, -0.7], [0.4, -0.95]].map(([r, y]) => new THREE.Vector2(r, y)), 28, Math.PI * 0.55, Math.PI * 0.9),
+      new THREE.MeshToonMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false }));
+    veu.position.set(0, 0.04, -0.03);
+    veu.userData.semContorno = true;
+    cabeca.add(veu);
+    const buque = new THREE.Group();
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * Math.PI * 2;
+      buque.add(malha(new THREE.SphereGeometry(0.045, 8, 6), toon([0xffffff, 0xffb3c6, 0xff8fab][i % 3]), Math.cos(a) * 0.05, 0.03, Math.sin(a) * 0.05));
+    }
+    buque.add(malha(new THREE.SphereGeometry(0.05, 8, 6), toon(0xffffff), 0, 0.06, 0));
+    buque.add(malha(new THREE.CylinderGeometry(0.025, 0.02, 0.12, 6), toon(0x52b788), 0, -0.05, 0));
+    buque.position.set(0, -0.5, 0.05);
+    bracos[1].add(buque);
   }
 
   contornar(raiz, 0.012);

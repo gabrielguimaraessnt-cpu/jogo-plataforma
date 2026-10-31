@@ -11,7 +11,8 @@ f.reto(28)
   .caixa('comum', -2.5, 13).caixa('comum', 2.5, 13)
   .inimigoFrente('carretel', 2.5, 16, 26, 4)
   .linha(-2.5, 16, -2.5, 26, 4)
-  .pudim(-2.5, 21);
+  .pudim(-2.5, 21)
+  .caixa('tesouro', -3.5, 11); // caixa dourada: +15 flores
 f.buraco(4);
 f.reto(20)
   .caixa('checkpoint', 0, 3)
@@ -31,6 +32,7 @@ f.subir(1.5).reto(30)
   .muroMola(13)
   .inimigoFrente('carretel', 0, 20, 27, 3.5)
   .caixa('comum', -3, 22).caixa('comum', 3, 22)
+  .caixa('vida', 3.5, 4) // caixa do coração: +1 vida
   .fim(27);
 
 export default f.pronto();

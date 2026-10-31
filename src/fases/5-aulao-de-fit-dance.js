@@ -12,7 +12,8 @@ f.reto(26)
   .caixa('mola', 2.5, 14).caixaNoAr('comum', 2.5, 14, 5)
   .linha(0, 4, 0, 18, 5)
   .inimigo('maquininha', -3, 3, 20, 3.5)
-  .pudim(0, 23);
+  .pudim(0, 23)
+  .caixa('tesouro', -3.5, 11); // caixa dourada: +15 flores
 f.moveis(4, { eixo: 'y', amp: 2.2, vel: BATIDA, alternar: false });
 f.reto(20)
   .caixa('checkpoint', 0, 3)
@@ -32,6 +33,7 @@ f.subir(2.1).reto(30)
   .muroMola(11)
   .inimigo('maquininha', -3, 3, 18, 4).inimigo('maquininha', 3, -3, 22, 4)
   .linha(-3, 17, -3, 26, 4).linha(3, 17, 3, 26, 4)
+  .caixa('vida', 3.5, 4) // caixa do coração: +1 vida
   .fim(27);
 
 export default f.pronto();

@@ -1,6 +1,6 @@
 // Coletáveis, caixas (presentes), chegada, pinheiros e pessoas.
 import * as THREE from 'three';
-import { toon, brilho, malha, contornar, caixaArredondada, texturaTexto, textura, compactar } from '../estilo3d.js';
+import { toon, brilho, malha, contornar, caixaArredondada, texturaTexto, textura, compactar, desenharFlor } from '../estilo3d.js';
 import { VILAO } from '../config.js';
 
 // ---------- Flor (coletável principal) ----------
@@ -136,7 +136,7 @@ function rotulos(g, tex, tamanho = 0.62, dist = 0.5) {
   }
 }
 
-let texAlergia, texVilao, texPinheiro;
+let texAlergia, texVilao, texPinheiro, texCoracao, texTesouro;
 export function criarCaixa(tipo, semente = 0) {
   const g = new THREE.Group();
   switch (tipo) {
@@ -187,6 +187,30 @@ export function criarCaixa(tipo, semente = 0) {
       for (const [x, z] of [[-0.2, -0.2], [0.2, -0.15], [-0.15, 0.22], [0.22, 0.2]]) g.add(malha(new THREE.SphereGeometry(0.2, 12, 10), toon(0x8fbf3a), x, 0.42, z));
       texAlergia ??= texturaTexto(['ALERGIA!', 'goiaba'], { largura: 256, altura: 160, fundo: '#ffd60a', cor: '#c1121f', fonte: 'bold 52px "Trebuchet MS", sans-serif', borda: '#c1121f' });
       rotulos(g, texAlergia, 0.7, 0.505);
+      break;
+    }
+    case 'vida': { // caixa do coração: +1 vida
+      g.add(malha(geoCaixa, toon(0xffe5ec)));
+      fitas(g, 0xe63950);
+      texCoracao ??= textura(128, (c) => {
+        c.fillStyle = '#e63950';
+        c.beginPath(); c.moveTo(64, 108);
+        c.bezierCurveTo(10, 70, 14, 22, 44, 22); c.bezierCurveTo(56, 22, 62, 30, 64, 38);
+        c.bezierCurveTo(66, 30, 72, 22, 84, 22); c.bezierCurveTo(114, 22, 118, 70, 64, 108); c.fill();
+        c.fillStyle = '#ffffff'; c.font = 'bold 34px sans-serif'; c.textAlign = 'center'; c.fillText('+1', 64, 74);
+      }, { suave: true });
+      rotulos(g, texCoracao, 0.5, 0.505);
+      break;
+    }
+    case 'tesouro': { // caixa dourada: chuva de flores
+      g.add(malha(geoCaixa, toon(0xffc300, { emissive: 0x6a4a00, emissiveIntensity: 0.4 })));
+      fitas(g, 0xffffff);
+      texTesouro ??= textura(128, (c) => {
+        c.fillStyle = '#fff3b0'; c.beginPath(); c.arc(64, 64, 58, 0, 7); c.fill();
+        desenharFlor(c, 64, 56, 34, '#e63950', '#ffd166', 6);
+        c.fillStyle = '#7a4a00'; c.font = 'bold 30px sans-serif'; c.textAlign = 'center'; c.fillText('+15', 64, 116);
+      }, { suave: true });
+      rotulos(g, texTesouro, 0.55, 0.505);
       break;
     }
     case 'ferro': { // caixa do vilão: não quebra

@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { TEMAS, bloco, materiaisTema, placa } from './temas.js';
 import { criarCaixa, criarFlor, criarAlianca, criarPudim, criarChegada, criarPinheiro } from './modelos/itens.js';
 import { criarNoivo } from './modelos/noivo.js';
-import { criarMaquininha, animarMaquininha, criarCarretel, criarGoiaba, criarGoiabeira, criarFumaca } from './modelos/inimigos.js';
+import { criarMaquininha, animarMaquininha, criarCarretel, criarGoiaba, criarGoiabeira, criarFumaca, criarGnomo, animarGnomo } from './modelos/inimigos.js';
 import { toon, aleatorio } from './estilo3d.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { som } from './som.js';
@@ -247,7 +247,8 @@ export class Mundo {
 
   montarInimigos() {
     for (const dado of this.fase.inimigos ?? []) {
-      const malha = dado.tipo === 'goiaba' ? criarGoiaba() : dado.tipo === 'carretel' ? criarCarretel() : criarMaquininha();
+      const malha = dado.tipo === 'goiaba' ? criarGoiaba() : dado.tipo === 'carretel' ? criarCarretel()
+        : dado.tipo === 'gnomo' ? criarGnomo() : criarMaquininha();
       this.raiz.add(malha);
       const de = new THREE.Vector3(...dado.de), ate = new THREE.Vector3(...dado.ate);
       this.inimigos.push({ tipo: dado.tipo, malha, de, ate, vel: dado.vel ?? 2, pulo: dado.pulo ?? 0, dist: de.distanceTo(ate),
@@ -342,6 +343,13 @@ export class Mundo {
       p.userData.cresce = 0;
       this.raiz.add(p);
       this.particulas.push({ malha: p, crescer: true, vida: 1, total: 1 });
+    } else if (c.tipo === 'vida') {
+      this.eventos.vidaExtra();
+      this.soltarFlorVoando(c.pos);
+    } else if (c.tipo === 'tesouro') {
+      this.eventos.flores(15);
+      this.eventos.aviso('+15 flores!', 1.2);
+      for (let i = 0; i < 15; i++) this.soltarFlorVoando(c.pos);
     } else if (modo !== 'explosao') {
       const n = c.tipo === 'mola' ? 1 : 1 + Math.floor(Math.random() * 4);
       this.eventos.flores(n);
@@ -355,7 +363,7 @@ export class Mundo {
     this.raiz.remove(c.malha);
     this.quebradas++;
     som.caixa();
-    const cores = { comum: [0xff8fab, 0xfff3b0, 0xb8a1ff], mola: [0x26232e, 0x00f5d4], checkpoint: [0x52b788, 0xffffff], explosiva: [0xa0522d, 0x8fbf3a] }[c.tipo] ?? [0xaaaaaa];
+    const cores = { comum: [0xff8fab, 0xfff3b0, 0xb8a1ff], mola: [0x26232e, 0x00f5d4], checkpoint: [0x52b788, 0xffffff], explosiva: [0xa0522d, 0x8fbf3a], vida: [0xffe5ec, 0xe63950], tesouro: [0xffc300, 0xffffff] }[c.tipo] ?? [0xaaaaaa];
     for (let i = 0; i < 12; i++) {
       const lasca = new THREE.Mesh(geoLasca, toon(cores[i % cores.length]));
       lasca.position.copy(c.pos).add(new THREE.Vector3((Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 0.8));
@@ -507,6 +515,7 @@ export class Mundo {
       else ini.malha.rotation.y = Math.atan2(jogador.pos.x - ini.pos.x, jogador.pos.z - ini.pos.z);
       if (ini.tipo === 'maquininha') animarMaquininha(ini.malha, t);
       if (ini.tipo === 'carretel') ini.malha.userData.rolo.rotation.x += dt * ini.vel * 3 * (ida ? 1 : -1);
+      if (ini.tipo === 'gnomo') animarGnomo(ini.malha, t + ini.t * 5);
       if (ini.tipo === 'goiaba') ini.malha.userData.fruta.scale.y = 0.95 + Math.sin(t * 6 + ini.t) * 0.05;
 
       if (jogador.morto) continue;

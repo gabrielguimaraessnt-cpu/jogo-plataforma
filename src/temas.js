@@ -997,6 +997,17 @@ export const TEMAS = {
   },
 };
 
+// Fase bônus: jardim florido, sem tapete de casamento.
+TEMAS.jardim = {
+  ...TEMAS.casamento,
+  mundo: 'Bônus',
+  ceu: 0xa9def9, neblina: [0xd0f0ff, 35, 120],
+  luz: { ceu: 0xffffff, chao: 0x7a9a6a, forca: 1.35, sol: 0xfff1d6, forcaSol: 2.3 },
+  plataforma: ['madeiraMesa', 'gramaFlorida'],
+  baixo: { cor: 0x48cae4, opacidade: 0.9 },
+  flor: 0xff4d6d, musica: 'familia', tapete: false,
+};
+
 export function materiaisTema(tema, qual = 'chao') {
   const [lado, topo] = tema[qual];
   return [matChao(lado, !!tema.emissivo), matChao(topo, !!tema.emissivo)];

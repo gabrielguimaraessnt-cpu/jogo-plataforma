@@ -8,7 +8,8 @@ f.reto(26)
   .placa(-3.4, 3, ['17/10/2027', 'O Grande Dia'])
   .linha(-2, 3, -2, 22, 7).linha(2, 3, 2, 22, 7)
   .caixa('comum', 0, 8).caixa('comum', -3, 12).caixa('comum', 3, 12).pilha('comum', 0, 17, 3)
-  .pudim(0, 23);
+  .pudim(0, 23)
+  .caixa('tesouro', -3.5, 11); // caixa dourada: +15 flores
 f.buraco(4);
 f.reto(20)
   .caixa('checkpoint', 0, 3)
@@ -21,6 +22,7 @@ f.subir(4.2).reto(34)
   .caixa('checkpoint', 0, 3)
   .caixa('mola', -3, 7).caixaNoAr('comum', -3, 7, 5).alianca(-3, 7, 6.3)
   .linha(0, 6, 0, 26, 9)
+  .caixa('vida', 3.5, 4) // caixa do coração: +1 vida
   .fim(31);
 
 const dados = f.pronto();

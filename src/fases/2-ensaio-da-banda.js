@@ -10,7 +10,8 @@ f.reto(26)
   .caixa('comum', -2, 7).caixa('comum', 2, 7)
   .caixa('mola', 0, 14).caixaNoAr('comum', 0, 14, 5)
   .goiaba(2.5, 19, { pulo: 1.6 }).goiaba(-2.5, 22, { pulo: 1.6 })
-  .pudim(0, 24);
+  .pudim(0, 24)
+  .caixa('tesouro', -3.5, 11); // caixa dourada: +15 flores
 f.buraco(3.5);
 f.reto(18)
   .caixa('checkpoint', 0, 3)
@@ -32,6 +33,7 @@ f.subir(2.1).reto(30)
   .goiaba(0, 20, { pulo: 1.4 })
   .pilha('comum', -2.5, 22, 2).pilha('comum', 2.5, 22, 2)
   .linha(0, 17, 0, 26, 4)
+  .caixa('vida', 3.5, 4) // caixa do coração: +1 vida
   .fim(27);
 
 export default f.pronto();

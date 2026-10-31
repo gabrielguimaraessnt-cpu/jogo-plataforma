@@ -112,7 +112,16 @@ function aviso(texto, duracao = 1.4) {
   tempoAviso = duracao;
 }
 
-function perderVida() { if (jogador.morrer()) { quedas++; pudins = 0; jogador.definirPudins(0); } }
+function perderVida() {
+  // Fase bônus: caiu, volta para o último pinheirinho sem perder nada.
+  if (FASES[indiceFase].bonus) {
+    jogador.reposicionar(mundo.checkpoint.clone().add(new THREE.Vector3(0, 0.05, 0)));
+    posicionarCamera(true);
+    aviso('Opa! De volta ao pinheirinho', 1.2);
+    return;
+  }
+  if (jogador.morrer()) { quedas++; pudins = 0; jogador.definirPudins(0); }
+}
 
 const eventos = {
   flores(n) {
@@ -136,6 +145,11 @@ const eventos = {
     } else perderVida();
   },
   morreu() { perderVida(); },
+  vidaExtra() {
+    vidas++;
+    som.vida();
+    aviso('+1 vida! ❤️', 1.4);
+  },
   pudim() {
     som.vida();
     if (pudins < AJUSTES.maxPudins) { pudins++; jogador.definirPudins(pudins); aviso('Pudim protetor!', 1.2); } else eventos.flores(10);
@@ -379,7 +393,7 @@ function montarMapa() {
     <div class="mundo"><h3>${m.icone} ${m.nome}</h3>
       ${m.fases.map((f) => {
         const i = indice++;
-        const trancada = i >= progresso.liberada;
+        const trancada = i >= progresso.liberada && !f.bonus; // a fase bônus fica sempre aberta
         const melhor = progresso.melhores[f.numero];
         const extras = [melhor ? '⏱ ' + formatarTempo(melhor) : '', progresso.aliancas[f.numero] ? '💍' : '', progresso.todasCaixas[f.numero] ? '🎁' : ''].filter(Boolean).join(' ');
         return `<button class="fase-botao ${trancada ? 'trancada' : ''}" data-fase="${i}" ${trancada ? 'disabled' : ''}>
@@ -397,6 +411,7 @@ $('mapa').addEventListener('click', (e) => {
 
 const AMOSTRAS = { florido: 'radial-gradient(circle at 30% 30%, #e07a3f 12%, transparent 13%), radial-gradient(circle at 70% 60%, #c0392b 10%, transparent 11%), #f4e6d4',
   jaqueta: 'linear-gradient(135deg, #231a17 0 50%, #3d5a80 50% 100%)',
+  noiva: 'radial-gradient(circle at 50% 30%, #ffffff 30%, #f1ece4 70%)',
   verde: '#56722f', azul: 'radial-gradient(circle at 35% 40%, #4a6fa5 18%, transparent 19%), radial-gradient(circle at 70% 70%, #9db4d8 14%, transparent 15%), #eef2fa' };
 function montarRoupas() {
   $('lista-roupas').innerHTML = Object.entries(ROUPAS).map(([chave, r]) =>
@@ -479,6 +494,9 @@ function iniciarCerimonia() {
   tocarMusica('casamento');
   som.vitoria();
   const c = mundo.chegada.position;
+  // No altar, a Bia sempre aparece de vestido de noiva.
+  jogador.remover();
+  jogador = new Jogador(cena, { roupa: 'noiva', externo: externos.bia ?? null });
   jogador.reposicionar(new THREE.Vector3(c.x - 0.6, c.y + 0.2, c.z - 0.4));
   jogador.invencivel = 0;
   jogador.direcao = 0;
