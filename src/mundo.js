@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { TEMAS, bloco, materiaisTema, materiaisDe, placaFase } from './temas.js';
 import { criarCaixa, criarFlor, criarAlianca, criarPudim, criarChegada, criarPinheiro } from './modelos/itens.js';
 import { criarNoivo } from './modelos/noivo.js';
-import { criarMaquininha, animarMaquininha, criarCarretel, criarGoiaba, criarGoiabeira, criarFumaca, criarGnomo, animarGnomo } from './modelos/inimigos.js';
+import { criarMaquininha, animarMaquininha, criarCarretel, criarGoiaba, criarGoiabeira, criarFumaca, criarGnomo, animarGnomo, criarDJ, animarDJ, criarNotaProjetil, criarReiGnomo, criarBolaNeve } from './modelos/inimigos.js';
 import { toon, aleatorio } from './estilo3d.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { som } from './som.js';
@@ -18,8 +18,9 @@ function solido(min, max, tipo, dono = null) {
 }
 
 export class Mundo {
-  constructor(cena, fase, eventos, externos = {}) {
+  constructor(cena, fase, eventos, externos = {}, dificuldade = null) {
     this.cena = cena;
+    this.dificuldade = dificuldade;
     this.fase = fase;
     this.tema = TEMAS[fase.tema] ?? TEMAS.familia;
     this.eventos = eventos;
@@ -220,7 +221,8 @@ export class Mundo {
       const malha = criarCaixa(dado.tipo, i++);
       malha.position.copy(pos);
       this.raiz.add(malha);
-      const caixa = { tipo: dado.tipo, pos, malha, viva: true, pavio: -1, vy: 0, fixa: !!dado.fixa };
+      const caixa = { tipo: dado.tipo, pos, malha, viva: true, pavio: -1, vy: 0, fixa: !!dado.fixa, muro: !!dado.muro, opacidade: 1 };
+      if (caixa.muro) malha.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.material.transparent = true; } });
       caixa.solido = solido([pos.x - 0.5, pos.y - 0.5, pos.z - 0.5], [pos.x + 0.5, pos.y + 0.5, pos.z + 0.5], 'caixa', caixa);
       this.solidos.push(caixa.solido);
       this.caixas.push(caixa);
@@ -228,8 +230,27 @@ export class Mundo {
     for (const c of this.caixas) if (!c.fixa) c.fixa = !this.apoiada(c);
   }
 
+  // Flor que ficou dentro de uma caixa ou de um bloco sobe para cima dele (senão não dá para pegar).
+  desenterrar(p) {
+    const ponto = [...p];
+    for (let volta = 0; volta < 8; volta++) {
+      let mexeu = false;
+      for (const s of this.solidos) {
+        if (!s.ativo || s.tipo === 'parede') continue;
+        const [x, y, z] = ponto;
+        if (x > s.min.x - 0.35 && x < s.max.x + 0.35 && z > s.min.z - 0.35 && z < s.max.z + 0.35 && y > s.min.y - 0.4 && y < s.max.y + 0.55) {
+          ponto[1] = s.max.y + 0.9;
+          mexeu = true;
+        }
+      }
+      if (!mexeu) break;
+    }
+    return ponto;
+  }
+
   montarColetaveis() {
-    for (const p of this.fase.frutas) {
+    for (const original of this.fase.frutas) {
+      const p = this.desenterrar(original);
       const malha = criarFlor(this.tema.flor);
       malha.position.set(...p);
       this.raiz.add(malha);
@@ -256,7 +277,7 @@ export class Mundo {
         : dado.tipo === 'gnomo' ? criarGnomo() : criarMaquininha();
       this.raiz.add(malha);
       const de = new THREE.Vector3(...dado.de), ate = new THREE.Vector3(...dado.ate);
-      this.inimigos.push({ tipo: dado.tipo, malha, de, ate, vel: dado.vel ?? 2, pulo: dado.pulo ?? 0, dist: de.distanceTo(ate),
+      this.inimigos.push({ tipo: dado.tipo, malha, de, ate, vel: (dado.vel ?? 2) * (this.dificuldade?.velInimigo ?? 1), pulo: dado.pulo ?? 0, dist: de.distanceTo(ate),
         t: Math.random(), vivo: true, voo: null, pos: de.clone(), invencivel: dado.tipo === 'goiaba' });
     }
     for (const dado of this.fase.goiabeiras ?? []) {
@@ -264,7 +285,8 @@ export class Mundo {
       const de = new THREE.Vector3(...dado.de), ate = new THREE.Vector3(...dado.ate);
       arvore.position.set(de.x + (de.x >= 0 ? 1 : -1) * 6.5, de.y + 0.6, de.z);
       this.raiz.add(arvore);
-      this.goiabeiras.push({ de, ate, intervalo: dado.intervalo, vel: dado.vel, espera: Math.random() * dado.intervalo });
+      const ritmo = this.dificuldade?.velInimigo ?? 1;
+      this.goiabeiras.push({ de, ate, intervalo: dado.intervalo / ritmo, vel: dado.vel * ritmo, espera: Math.random() * dado.intervalo });
     }
   }
 
@@ -440,7 +462,7 @@ export class Mundo {
   atualizarDesaba(m, dt, jogador) {
     const anterior = m.atual.clone();
     if (m.estado === 'parado') {
-      if (jogador && jogador.chaoAtual === m.solido) { m.estado = 'treme'; m.timer = 0.5; som.pavio(); }
+      if (jogador && jogador.chaoAtual === m.solido) { m.estado = 'treme'; m.timer = this.dificuldade?.desaba ?? 0.5; som.pavio(); }
     } else if (m.estado === 'treme') {
       m.timer -= dt;
       m.malha.position.x = m.atual.x + Math.sin(this.tempo * 60) * 0.05;
@@ -513,6 +535,15 @@ export class Mundo {
     // Caixas: pavio, queda e mola
     for (const c of this.caixas) {
       if (!c.viva) continue;
+      if (c.muro) {
+        // muro entre a câmera e a Bia fica quase transparente
+        const atrapalha = this.cameraZ !== undefined && c.pos.z < this.cameraZ && c.pos.z > jogador.pos.z - 0.8;
+        const alvo = atrapalha ? 0.22 : 1;
+        if (Math.abs(c.opacidade - alvo) > 0.01) {
+          c.opacidade += (alvo - c.opacidade) * Math.min(dt * 10, 1);
+          c.malha.traverse((o) => { if (o.isMesh) { o.material.opacity = c.opacidade; o.material.depthWrite = c.opacidade > 0.95; } });
+        }
+      }
       if (c.pavio >= 0) {
         const antes = c.pavio;
         c.pavio -= dt;
@@ -684,18 +715,43 @@ export class Mundo {
 
 // ---------- Chefão: o Gerente da XôMaq ----------
 
+// Cada chefão: modelo, tamanho, o que arremessa e as falas.
+const TIPOS_CHEFE = {
+  gerente: {
+    nome: 'Gerente', criar: () => criarMaquininha({ chefe: true }), escala: 2.2, altura: 1.05,
+    animar: animarMaquininha, projetil: criarCarretel, cores: [0xd62828, 0xf1f1f1],
+    inicio: 'O Gerente quer bater a meta!', cansado: 'Pane na máquina!',
+    golpes: ['Ai! Minha meta!', 'Isso vai pro RH!', 'Hora extra não!', 'Vou ligar pro dono!'], fim: 'Pedido de demissão aceito!',
+  },
+  dj: {
+    nome: 'DJ Caixa de Som', criar: criarDJ, escala: 2.4, altura: 1.35,
+    animar: animarDJ, projetil: criarNotaProjetil, cores: [0xff4ecd, 0x3ef0ff],
+    inicio: 'O DJ aumentou o volume!', cansado: 'Caiu o som!',
+    golpes: ['Desafinou!', 'Volta o grave!', 'Meu fone!', 'Última música!'], fim: 'Fim do baile! O aulão é seu!',
+  },
+  gnomo: {
+    nome: 'Rei dos Gnomos', criar: criarReiGnomo, escala: 2.4, altura: 1.6,
+    animar: (m, t, r) => animarGnomo(m, t * r), projetil: criarBolaNeve, cores: [0xc1121f, 0x2d6a4f],
+    inicio: 'O Rei dos Gnomos roubou os presentes!', cansado: 'O rei escorregou no gelo!',
+    golpes: ['Minha coroa!', 'Brrr, que frio!', 'Devolvo um presente!', 'Ho-ho-não!'], fim: 'Os presentes voltaram! Feliz Natal!',
+  },
+};
+
 class Chefe {
   constructor(mundo, dados) {
     this.mundo = mundo;
     this.lim = dados.limites;
-    this.malha = criarMaquininha({ chefe: true });
-    this.escala = 2.2;
+    this.tipo = TIPOS_CHEFE[dados.tipo] ?? TIPOS_CHEFE.gerente;
+    this.malha = this.tipo.criar();
+    this.escala = this.tipo.escala;
     this.malha.scale.setScalar(this.escala);
     this.pos = new THREE.Vector3(...dados.pos);
     this.base = this.pos.clone();
     this.malha.position.copy(this.pos);
     mundo.raiz.add(this.malha);
-    this.vidas = 3;
+    this.vidasMax = mundo.dificuldade?.chefeVidas ?? 3;
+    this.vidas = this.vidasMax;
+    this.ritmo = mundo.dificuldade?.velInimigo ?? 1;
     this.estado = 'esperando';
     this.timer = 0;
     this.arremessos = 0;
@@ -711,11 +767,11 @@ class Chefe {
 
     // A luta começa quando a Bia entra na arena.
     if (this.estado === 'esperando') {
-      animarMaquininha(this.malha, t, 0.5);
+      this.tipo.animar(this.malha, t, 0.5);
       if (jogador.pos.z < this.lim.zMax && !jogador.morto) {
         this.estado = 'andando';
         this.timer = 1.5;
-        m.eventos.chefe(this.vidas, 'O Gerente quer bater a meta!');
+        m.eventos.chefe(this.vidas, this.tipo.inicio, { nome: this.tipo.nome, max: this.vidasMax });
       }
       return;
     }
@@ -724,16 +780,17 @@ class Chefe {
     this.timer -= dt;
     let alvoEscalaY = 1;
     if (this.estado === 'andando') {
-      this.pos.x += this.dir * dt * (2.5 + (3 - this.vidas) * 1.2);
+      const raiva = this.vidasMax - this.vidas; // quanto mais apanha, mais rápido fica
+      this.pos.x += this.dir * dt * (2.5 + raiva * 1.0) * this.ritmo;
       if (this.pos.x > this.lim.xMax - 1) this.dir = -1;
       if (this.pos.x < this.lim.xMin + 1) this.dir = 1;
-      animarMaquininha(this.malha, t, 1.2 + (3 - this.vidas) * 0.4);
+      this.tipo.animar(this.malha, t, 1.2 + raiva * 0.3);
       this.malha.rotation.y = Math.atan2(jogador.pos.x - this.pos.x, jogador.pos.z - this.pos.z);
       if (this.timer <= 0) {
         this.arremessar(jogador);
         this.arremessos++;
-        this.timer = 1.6 - (3 - this.vidas) * 0.25;
-        if (this.arremessos >= 3 + (3 - this.vidas)) { this.estado = 'cansado'; this.timer = 3.5; this.arremessos = 0; som.inimigo(); m.eventos.aviso('Pane na máquina!', 1.2); }
+        this.timer = Math.max(0.7, (1.6 - (this.vidasMax - this.vidas) * 0.2) / this.ritmo);
+        if (this.arremessos >= 3 + Math.min(this.vidasMax - this.vidas, 3)) { this.estado = 'cansado'; this.timer = 3.5 / Math.sqrt(this.ritmo); this.arremessos = 0; som.inimigo(); m.eventos.aviso(this.tipo.cansado, 1.2); }
       }
     } else if (this.estado === 'cansado') {
       alvoEscalaY = 0.55;
@@ -756,7 +813,7 @@ class Chefe {
 
     // Contato
     if (!jogador.morto && this.estado !== 'bravo') {
-      const topo = this.pos.y + 1.05 * this.escala * novaY;
+      const topo = this.pos.y + this.tipo.altura * this.escala * novaY;
       const dx = jogador.pos.x - this.pos.x, dz = jogador.pos.z - this.pos.z;
       const perto = dx * dx + dz * dz < 1.5 * 1.5;
       if (perto && jogador.pos.y < topo + 0.2 && jogador.pos.y + 1 > this.pos.y) {
@@ -775,37 +832,37 @@ class Chefe {
     som.explosao();
     jogador.quicar(AJUSTES.pulinhoMola * 0.8);
     jogador.vel.z = 6;
-    m.eventos.chefe(this.vidas);
+    m.eventos.chefe(this.vidas, null, { nome: this.tipo.nome, max: this.vidasMax });
     if (this.vidas <= 0) {
       this.estado = 'derrotado';
       m.explosaoEm(this.pos.clone().add(new THREE.Vector3(0, 1, 0)), 0.1);
       m.raiz.remove(this.malha);
       for (let i = 0; i < 20; i++) {
-        const peca = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.3, 0.3), toon(i % 2 ? 0xd62828 : 0xf1f1f1));
+        const peca = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.3, 0.3), toon(this.tipo.cores[i % 2]));
         peca.position.copy(this.pos).add(new THREE.Vector3(0, 1.5, 0));
         m.adicionarParticula(peca, new THREE.Vector3((Math.random() - 0.5) * 12, 8 + Math.random() * 6, (Math.random() - 0.5) * 12), 2);
       }
       m.chegada.visible = true;
       m.eventos.pontos(PONTOS.chefe, this.pos);
-      m.eventos.aviso('Pedido de demissão aceito!', 2.5);
+      m.eventos.aviso(this.tipo.fim, 2.5);
       som.vitoria();
       return;
     }
     this.estado = 'bravo';
     this.timer = 1;
-    m.eventos.aviso(['Ai! Minha meta!', 'Isso vai pro RH!'][2 - this.vidas] ?? 'Ai!', 1.2);
+    m.eventos.aviso(this.tipo.golpes[(this.vidasMax - this.vidas - 1) % this.tipo.golpes.length], 1.2);
   }
 
   arremessar(jogador) {
     const m = this.mundo;
-    const malha = criarCarretel();
+    const malha = this.tipo.projetil();
     malha.scale.setScalar(1.2);
     const pos = this.pos.clone().add(new THREE.Vector3(0, 0, 1.2));
     const dir = jogador.pos.clone().sub(pos).setY(0).normalize();
     malha.position.copy(pos);
     malha.rotation.y = Math.atan2(dir.x, dir.z);
     m.raiz.add(malha);
-    this.projeteis.push({ malha, pos, vel: dir.multiplyScalar(7), vida: 4, vivo: true });
+    this.projeteis.push({ malha, pos, vel: dir.multiplyScalar(7 * this.ritmo), vida: 4, vivo: true });
     som.giro();
   }
 
@@ -816,7 +873,7 @@ class Chefe {
       p.vida -= dt;
       p.pos.addScaledVector(p.vel, dt);
       p.malha.position.copy(p.pos);
-      p.malha.userData.rolo.rotation.x += dt * 20;
+      if (p.malha.userData.rolo) p.malha.userData.rolo.rotation.x += dt * 20; else p.malha.rotation.y += dt * 8;
       if (p.vivo && !jogador.morto) {
         const r = m.contato(jogador, p.pos, { raio: 0.8 });
         if (r === 'derrota' || r === 'pisou') {
@@ -824,7 +881,7 @@ class Chefe {
           p.vida = 0;
           if (r === 'pisou') jogador.quicar(AJUSTES.pulinhoCaixa);
           som.inimigo();
-        } else if (r === 'dano') m.eventos.dano('carretel');
+        } else if (r === 'dano') m.eventos.dano('projetil');
       }
       if (p.vida <= 0 || p.pos.z > this.lim.zMax + 4) { m.raiz.remove(p.malha); this.projeteis.splice(i, 1); }
     }

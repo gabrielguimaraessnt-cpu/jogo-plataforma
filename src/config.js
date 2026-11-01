@@ -41,6 +41,22 @@ export const PONTOS = {
   tempoBase: 3000,        // bônus de tempo: 3000 menos 10 por segundo
 };
 
+// Níveis de dificuldade (escolhidos no menu).
+export const DIFICULDADES = {
+  bebe: {
+    id: 0, nome: 'Bebezinho', icone: '👶', descricao: 'Não perde vida: cair ou encostar em bichinho só faz voltar um pouco.',
+    vidas: Infinity, semPerder: true, pudins: 2, velInimigo: 0.6, chefeVidas: 2, desaba: 1.2, pontos: 0.5,
+  },
+  normal: {
+    id: 1, nome: 'Normal', icone: '⭐', descricao: 'Do jeito que o jogo foi pensado.',
+    vidas: 10, semPerder: false, pudins: 0, velInimigo: 1, chefeVidas: 3, desaba: 0.5, pontos: 1,
+  },
+  dificil: {
+    id: 2, nome: 'Difícil', icone: '🔥', descricao: '3 vidas, bichinhos rápidos, chefões com 5 golpes e pontos x1,5.',
+    vidas: 3, semPerder: false, pudins: 0, velInimigo: 1.4, chefeVidas: 5, desaba: 0.3, pontos: 1.5,
+  },
+};
+
 export const AJUSTES = {
   vidasIniciais: 10,
   velocidade: 7.5,        // metros por segundo correndo

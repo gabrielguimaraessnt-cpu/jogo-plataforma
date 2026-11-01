@@ -1,5 +1,5 @@
 // Mundo NATAL — Fase 7: Noite de Natal (a época favorita da Bia)
-// Novidades: lago congelado (escorrega!), ponte de gelo e degraus de neve que desabam.
+// Novidades: lago congelado (escorrega!), ponte de gelo, degraus de neve que desabam e o chefão Rei dos Gnomos.
 import { Fase } from './construtor.js';
 
 const f = new Fase({ numero: 7, nome: 'Noite de Natal', tema: 'natal',
@@ -38,7 +38,7 @@ f.reto(30)
   .muroMola(12)
   .inimigo('gnomo', -3, 3, 20, 3.5)
   .pilha('comum', -2.5, 24, 2).pilha('comum', 2.5, 24, 2)
-  .caixa('vida', 3.5, 4)
-  .fim(27);
+  .caixa('vida', 3.5, 4);
+f.chefe('gnomo');
 
 export default f.pronto();

@@ -12,10 +12,15 @@ e enfrenta a turma da **XôMaq** (sátira da antiga loja). No fim, chega ao alta
 | ⛪ Igreja | 2. Ensaio da Banda | palco, bateria, teclado, guitarras, telões do louvor, palco que sobe e desce |
 | 🎨 Hobbies | 3. Ateliê de Costura | lápis, alfinetes, botões e carretéis gigantes, manequins |
 | 🎨 Hobbies | 4. Rodízio de Sushi | sushi, estrogonofe e pudim gigantes, esteira de pratos, lanternas |
-| 🎨 Hobbies | 5. Aulão de Fit Dance | pista neon, caixas de som, plataformas no ritmo da música eletrônica |
+| 🎨 Hobbies | 5. Aulão de Fit Dance | pista neon, trampolins, plataformas no ritmo e o chefão **DJ Caixa de Som** |
 | 🧵 XôMaq | 6. A Loja XôMaq | prateleiras, metas, hora extra e o chefão **Gerente** |
-| 🎄 Natal | 7. Noite de Natal | neve caindo, pinheiros com pisca-pisca, bonecos de neve, bengalas doces, árvore gigante |
+| 🎄 Natal | 7. Noite de Natal | lago de gelo, gnomos, Jingle Bells e o chefão **Rei dos Gnomos** |
 | 💍 Casamento | 8. O Grande Dia | tapete vermelho, convidados, pinheiros com luzes e a cena final no altar |
+
+## Dificuldade
+
+Escolhida no menu: 👶 **Bebezinho** (não perde vida, bichinhos lentos, chefões com 2 golpes, pontos x0,5),
+⭐ **Normal** (10 vidas) e 🔥 **Difícil** (3 vidas, bichinhos rápidos, chefões com 5 golpes, pontos x1,5).
 
 ## Itens e perigos
 
@@ -50,7 +55,7 @@ http://localhost:8000/?tudo=1. Para ver a tela de aniversário: `?hoje=2026-11-0
 |---|---|---|
 | Andar | WASD ou setas | analógico / direcional |
 | Pular | Espaço | A / ✕ |
-| Giro do Fit Dance | J ou Shift | X / ▢ |
+| Giro do Fit Dance | J, K, E ou X | X / ▢ |
 | Pausar | Esc ou P | Start |
 | Som | M | |
 | Menus | setas e Enter (ou Espaço); Esc volta | analógico ou direcional; A escolhe, B volta |

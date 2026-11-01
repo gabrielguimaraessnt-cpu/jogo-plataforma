@@ -153,6 +153,85 @@ export function animarGnomo(m, t) {
   pes[1].position.z = 0.05 - Math.sin(t * 10) * 0.08;
 }
 
+// ---------- Chefões novos ----------
+
+// DJ Caixa de Som: chefão do Aulão de Fit Dance.
+export function criarDJ() {
+  const g = new THREE.Group();
+  const corpo = new THREE.Group();
+  g.add(corpo);
+  corpo.add(malha(caixaArredondada(1.1, 1.2, 0.9, 0.1), toon(0x1f1b2e), 0, 0.7, 0));
+  const cones = [];
+  for (const [y, r] of [[0.95, 0.24], [0.5, 0.32]]) {
+    const c = malha(new THREE.CylinderGeometry(r, r * 0.6, 0.08, 20), toon(0x3a3550), 0, y, 0.46);
+    c.rotation.x = Math.PI / 2;
+    corpo.add(c);
+    const anel = malha(new THREE.TorusGeometry(r, 0.03, 6, 22), toon(0xff4ecd, { emissive: 0xff4ecd, emissiveIntensity: 1 }), 0, y, 0.47);
+    corpo.add(anel);
+    cones.push(c);
+  }
+  // óculos escuros e cara de bravo em cima do alto-falante de cima
+  for (const lado of [-1, 1]) {
+    const lente = malha(new THREE.BoxGeometry(0.28, 0.14, 0.04), toon(0x111111), lado * 0.2, 1.18, 0.47);
+    corpo.add(lente);
+  }
+  corpo.add(malha(new THREE.BoxGeometry(0.16, 0.04, 0.04), toon(0x111111), 0, 1.2, 0.47));
+  // fone de ouvido
+  const arco = malha(new THREE.TorusGeometry(0.62, 0.05, 6, 20, Math.PI), toon(0x3ef0ff, { emissive: 0x3ef0ff, emissiveIntensity: 0.6 }), 0, 1.25, 0);
+  corpo.add(arco);
+  for (const lado of [-1, 1]) corpo.add(malha(new THREE.CylinderGeometry(0.18, 0.18, 0.14, 14), toon(0x3ef0ff), lado * 0.62, 1.2, 0)).rotation;
+  corpo.children.slice(-2).forEach((c) => { c.rotation.z = Math.PI / 2; });
+  const pes = [];
+  for (const lado of [-1, 1]) { const pe = malha(new THREE.BoxGeometry(0.3, 0.14, 0.4), toon(0xff4ecd), lado * 0.3, 0.07, 0.05); g.add(pe); pes.push(pe); }
+  contornar(g, 0.014);
+  g.userData = { corpo, cones, pes, tipo: 'dj' };
+  return g;
+}
+
+export function animarDJ(m, t, rapido = 1) {
+  const { corpo, cones, pes } = m.userData;
+  const batida = Math.max(0, Math.sin(t * Math.PI * 4.26 * rapido));
+  cones.forEach((c) => c.scale.set(1 + batida * 0.25, 1, 1 + batida * 0.25));
+  corpo.position.y = batida * 0.08;
+  pes[0].position.y = 0.07 + Math.max(0, Math.sin(t * 9 * rapido)) * 0.1;
+  pes[1].position.y = 0.07 + Math.max(0, -Math.sin(t * 9 * rapido)) * 0.1;
+}
+
+// Nota musical que o DJ arremessa.
+export function criarNotaProjetil() {
+  const g = new THREE.Group();
+  const m = toon(0xff4ecd, { emissive: 0xff4ecd, emissiveIntensity: 0.8 });
+  const bola = malha(new THREE.SphereGeometry(0.2, 10, 8), m, 0, 0.35, 0);
+  bola.scale.set(1.2, 0.85, 0.7);
+  g.add(bola);
+  g.add(malha(new THREE.BoxGeometry(0.05, 0.6, 0.05), m, 0.2, 0.65, 0));
+  g.add(malha(new THREE.BoxGeometry(0.25, 0.07, 0.05), m, 0.32, 0.92, 0));
+  return g;
+}
+
+// Rei dos Gnomos: chefão do Natal (um gnomo com coroa e capa).
+export function criarReiGnomo() {
+  const g = criarGnomo();
+  const { corpo } = g.userData;
+  const ouro = toon(0xffd166, { emissive: 0x8a5a00, emissiveIntensity: 0.4 });
+  const coroa = malha(new THREE.CylinderGeometry(0.2, 0.22, 0.14, 10, 1, true), ouro, -0.15, 1.6, 0);
+  coroa.material.side = THREE.DoubleSide;
+  corpo.add(coroa);
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2;
+    corpo.add(malha(new THREE.ConeGeometry(0.05, 0.12, 4), ouro, -0.15 + Math.cos(a) * 0.2, 1.72, Math.sin(a) * 0.2));
+  }
+  const capa = malha(new THREE.ConeGeometry(0.42, 0.7, 16, 1, true, Math.PI * 0.6, Math.PI * 0.8), toon(0x7b2cbf, { side: THREE.DoubleSide }), 0, 0.4, -0.02);
+  corpo.add(capa);
+  return g;
+}
+
+export function criarBolaNeve() {
+  const g = new THREE.Group();
+  g.add(malha(new THREE.IcosahedronGeometry(0.32, 1), toon(0xffffff), 0, 0.35, 0));
+  return g;
+}
+
 // Goiaba: perigo. Não dá para derrotar, só desviar.
 export function criarGoiaba() {
   const g = new THREE.Group();

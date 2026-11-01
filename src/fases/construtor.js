@@ -168,7 +168,10 @@ export class Fase {
   // Muro de caixas de metal com uma caixa de som (mola) na frente.
   muroMola(dz, { altura = 3, largura = 8 } = {}) {
     this.caixa('mola', 0, dz);
-    for (let x = -largura / 2 + 0.5; x < largura / 2; x += 1) for (let a = 0; a < altura; a++) this.caixa('ferro', x, dz + 3, a);
+    // muro: fica transparente quando passa entre a câmera e a Bia (não atrapalha a visão)
+    for (let x = -largura / 2 + 0.5; x < largura / 2; x += 1) for (let a = 0; a < altura; a++) {
+      this.d.caixas.push({ tipo: 'ferro', pos: [x, this.yIni + 0.5 + a, this.ini - dz - 3], muro: true });
+    }
     this.linha(0, dz, 0, dz + 3.5, 4, 3.5);
     return this;
   }

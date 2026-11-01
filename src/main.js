@@ -7,7 +7,7 @@ import { ROUPAS } from './modelos/bia.js';
 import { lerEntrada, iniciarToque, ACOES, teclasAtuais, definirTecla, restaurarTeclas, nomeTecla, capturarTecla } from './entrada.js';
 import { som, alternarSom, contexto } from './som.js';
 import { tocarMusica, carregarMinhasMusicas, adicionarMinhasMusicas, apagarMinhasMusicas, escolherModoMusica, proximaMusica, estadoMinhasMusicas, aoMudarMinhasMusicas } from './musica.js';
-import { AJUSTES, HISTORIA, TODAS_LIBERADAS, PONTOS } from './config.js';
+import { AJUSTES, HISTORIA, TODAS_LIBERADAS, PONTOS, DIFICULDADES } from './config.js';
 import { FASES, MUNDOS } from './fases/index.js';
 import { enviarRecorde, mostrarRecordes, formatarTempo } from './placar.js';
 
@@ -108,7 +108,7 @@ async function carregarExternos() {
 // ---------- Progresso salvo no navegador ----------
 
 const progresso = (() => {
-  const padrao = { liberada: 1, melhores: {}, aliancas: {}, todasCaixas: {}, roupa: 'florido', terminou: false };
+  const padrao = { liberada: 1, melhores: {}, aliancas: {}, todasCaixas: {}, roupa: 'florido', terminou: false, dificuldade: 'normal' };
   try { return { ...padrao, ...JSON.parse(localStorage.getItem('bia-progresso') ?? '{}') }; } catch { return padrao; }
 })();
 function salvar() { try { localStorage.setItem('bia-progresso', JSON.stringify(progresso)); } catch {} }
@@ -140,9 +140,11 @@ function aviso(texto, duracao = 1.4) {
   tempoAviso = duracao;
 }
 
+const dificuldade = () => DIFICULDADES[progresso.dificuldade] ?? DIFICULDADES.normal;
+
 function perderVida() {
-  // Fase bônus: caiu, volta para o último pinheirinho sem perder nada.
-  if (FASES[indiceFase].bonus) {
+  // Fase bônus e nível Bebezinho: caiu, volta para o último pinheirinho sem perder nada.
+  if (FASES[indiceFase].bonus || dificuldade().semPerder) {
     jogador.reposicionar(mundo.checkpoint.clone().add(new THREE.Vector3(0, 0.05, 0)));
     posicionarCamera(true);
     aviso('Opa! De volta ao pinheirinho', 1.2);
@@ -193,6 +195,11 @@ const eventos = {
       jogador.protegido();
       som.inimigo();
       aviso('O pudim te salvou!', 1);
+    } else if (dificuldade().semPerder) {
+      // Bebezinho: o bichinho só empurra a Bia, sem tirar vida.
+      jogador.protegido();
+      som.inimigo();
+      aviso('Ui! Foi por pouco', 1);
     } else perderVida();
   },
   morreu() { perderVida(); },
@@ -213,9 +220,11 @@ const eventos = {
     aviso('Aliança encontrada! 💍', 2);
     $('hud-alianca').classList.remove('oculto');
   },
-  chefe(vidasChefe, msg) {
+  chefe(vidasChefe, msg, info = {}) {
     $('chefe-barra').classList.toggle('oculto', vidasChefe <= 0);
-    $('chefe-vidas').innerHTML = [0, 1, 2].map((i) => `<span class="${i < vidasChefe ? '' : 'vazio'}"></span>`).join('');
+    if (info.nome) $('chefe-nome').textContent = info.nome;
+    const max = info.max ?? 3;
+    $('chefe-vidas').innerHTML = Array.from({ length: max }, (_, i) => `<span class="${i < vidasChefe ? '' : 'vazio'}"></span>`).join('');
     if (msg) aviso(msg, 2);
   },
   venceu() {
@@ -241,7 +250,7 @@ function montarFase(indice) {
   jogador?.remover();
   const fase = FASES[indice];
   aplicarTema(TEMAS[fase.tema]);
-  mundo = new Mundo(cena, fase, eventos);
+  mundo = new Mundo(cena, fase, eventos, {}, dificuldade());
   criarJogador();
   posicionarCamera(true);
 }
@@ -258,8 +267,11 @@ function comecar(indice = indiceFase) {
   jogador?.remover();
   jogador = null;
   montarFase(indice);
-  vidas = AJUSTES.vidasIniciais; flores = 0; pudins = 0; tempoMs = 0; quedas = 0; pegouAlianca = false;
+  vidas = dificuldade().vidas; flores = 0; pudins = 0; tempoMs = 0; quedas = 0; pegouAlianca = false;
   pontos = 0; combo = 0; ultimoCombo = -10;
+  // Bebezinho já começa com pudins protetores.
+  pudins = Math.min(dificuldade().pudins, AJUSTES.maxPudins);
+  jogador.definirPudins(pudins);
   estado = 'jogando';
   mostrarTela(null);
   $('hud').classList.remove('oculto');
@@ -325,7 +337,7 @@ $('form-nome').addEventListener('submit', (e) => {
 async function enviarTempo(nome) {
   $('fim-status').textContent = `Enviando o tempo de ${nome}…`;
   try {
-    const id = await enviarRecorde({ nome, fase: FASES[indiceFase].numero, tempoMs, caixas: mundo.quebradas, frutas: flores, pontos: pontosFinais });
+    const id = await enviarRecorde({ nome, fase: FASES[indiceFase].numero, tempoMs, caixas: mundo.quebradas, frutas: flores, pontos: pontosFinais, dificuldade: dificuldade().id });
     $('fim-status').textContent = `Tempo registrado no placar como ${nome}.`;
     $('form-recorde').classList.add('oculto');
     mostrarRecordes($('lista-recordes-fim'), FASES[indiceFase].numero, id);
@@ -341,7 +353,8 @@ function mostrarFim() {
   $('fim-titulo').textContent = mundo.quebradas >= total ? 'Todos os presentes abertos!' : 'Fase concluída!';
   const bonusTempo = Math.max(0, PONTOS.tempoBase - Math.floor(tempoMs / 1000) * 10);
   const bonusCaixas = mundo.quebradas >= total ? PONTOS.todasCaixas : 0;
-  pontosFinais = pontos + bonusTempo + bonusCaixas;
+  const dif = dificuldade();
+  pontosFinais = Math.round((pontos + bonusTempo + bonusCaixas) * dif.pontos);
   const fmt = (n) => n.toLocaleString('pt-BR');
   $('fim-resumo').innerHTML = `
     <span>Tempo</span><b>${formatarTempo(tempoMs)}</b>
@@ -351,6 +364,7 @@ function mostrarFim() {
     <span>Pontos da fase</span><b>${fmt(pontos)}</b>
     <span>Bônus de tempo</span><b>+${fmt(bonusTempo)}</b>
     ${bonusCaixas ? `<span>Todos os presentes</span><b>+${fmt(bonusCaixas)}</b>` : ''}
+    ${dif.pontos !== 1 ? `<span>${dif.icone} ${dif.nome}</span><b>x${String(dif.pontos).replace('.', ',')}</b>` : ''}
     <span class="total">Total</span><b class="total">⭐ ${fmt(pontosFinais)}</b>`;
   const num = fase.numero;
   if (!progresso.pontos) progresso.pontos = {};
@@ -427,6 +441,14 @@ document.addEventListener('click', (e) => {
   escolherModoMusica(b.dataset.modoMusica);
 });
 
+// ---------- Dificuldade ----------
+
+function mostrarDificuldade() {
+  const d = dificuldade();
+  $('botao-dificuldade').innerHTML = `Dificuldade: <b>${d.icone} ${d.nome}</b>`;
+  $('botao-dificuldade').title = d.descricao;
+}
+
 // ---------- Menus pelo teclado e pelo controle ----------
 // Setas/analógico passam de um item para o outro, Enter/Espaço/A escolhe, Esc/B volta.
 
@@ -501,6 +523,13 @@ document.addEventListener('click', (e) => {
   switch (acao) {
     case 'mapa': irParaMenu('tela-mapa'); telaAnterior = 'tela-menu'; break;
     case 'menu-inicial': irParaMenu('tela-menu'); break;
+    case 'dificuldade': {
+      const ordem = Object.keys(DIFICULDADES);
+      progresso.dificuldade = ordem[(ordem.indexOf(progresso.dificuldade) + 1) % ordem.length];
+      salvar();
+      mostrarDificuldade();
+      break;
+    }
     case 'roupas': estado = 'roupas'; telaAnterior = 'tela-menu'; montarRoupas(); mostrarTela('tela-roupas'); vitrine(true); break;
     case 'controles': telaAnterior = 'tela-menu'; montarTeclas(); $('aviso-teclas').textContent = 'Clique numa tecla para trocar e depois aperte a nova.'; mostrarTela('tela-controles'); break;
     case 'restaurar-teclas': restaurarTeclas(); montarTeclas(); $('aviso-teclas').textContent = 'Teclas padrão de volta.'; break;
@@ -613,7 +642,7 @@ function vitrine(instantaneo, dt = 0, centro = jogador.pos, distancia = 3.4) {
 function atualizarHud() {
   $('hud-pontos').textContent = pontos.toLocaleString('pt-BR');
   $('hud-flores').textContent = flores;
-  $('hud-vidas').textContent = vidas;
+  $('hud-vidas').textContent = Number.isFinite(vidas) ? vidas : '∞';
   $('hud-pudins').textContent = pudins;
   $('hud-caixas').textContent = `${mundo.quebradas}/${mundo.totalCaixas}`;
   $('hud-tempo').textContent = formatarTempo(tempoMs);
@@ -714,7 +743,7 @@ function quadro(agora) {
     tempoAviso -= dt;
     if (tempoAviso <= 0) $('aviso').classList.add('oculto');
   }
-  if (mundo) renderizador.render(cena, camera);
+  if (mundo) { mundo.cameraZ = camera.position.z; renderizador.render(cena, camera); }
 }
 
 addEventListener('pointerdown', () => { try { contexto(); } catch {} });
@@ -729,6 +758,7 @@ await Promise.race([document.fonts?.ready, new Promise((ok) => setTimeout(ok, 15
 montarFase(0);
 estado = 'menu';
 mostrarJogadorAtual();
+mostrarDificuldade();
 if (nomeValido(nomeSalvo())) mostrarTela('tela-menu'); else pedirNome();
 tocarMusica('menu');
 requestAnimationFrame(quadro);

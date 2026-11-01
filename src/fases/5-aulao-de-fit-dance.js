@@ -1,5 +1,5 @@
 // Mundo HOBBIES — Fase 5: Aulão de Fit Dance (as plataformas dançam no ritmo)
-// Novidades: pista de caixas de som (trampolins) e degraus de luz que desabam.
+// Novidades: pista de caixas de som (trampolins), degraus de luz que desabam e o chefão DJ Caixa de Som.
 import { Fase } from './construtor.js';
 
 const BATIDA = 128 / 60 / 4; // um vai-e-volta a cada 4 batidas da música (128 bpm)
@@ -33,7 +33,7 @@ f.reto(28)
   .muroMola(11)
   .inimigo('maquininha', -3, 3, 18, 4).inimigo('maquininha', 3, -3, 22, 4)
   .linha(-3, 17, -3, 25, 4).linha(3, 17, 3, 25, 4)
-  .caixa('vida', 3.5, 4)
-  .fim(25);
+  .caixa('vida', 3.5, 4);
+f.chefe('dj');
 
 export default f.pronto();
