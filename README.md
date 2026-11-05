@@ -28,7 +28,7 @@ Escolhida no menu: 👶 **Bebezinho** (não perde vida, bichinhos lentos, chefõ
 |---|---|
 | 🌹 Flor | coletável; 100 flores = 1 vida |
 | 🎁 Presente | quebra ao pisar ou girar; solta flores |
-| 🔊 Caixa de som | trampolim (pulo bem alto) |
+| 🔊 Caixa de som | trampolim (pulo bem alto); é travada: não quebra e não conta como presente |
 | 🌲 Caixa do pinheiro | checkpoint; nasce um pinheirinho no lugar |
 | 🍈 Caixote de goiaba | explode (pisar acende o pavio; girar explode na hora) |
 | 🔩 Caixa XôMaq | de metal, não quebra |

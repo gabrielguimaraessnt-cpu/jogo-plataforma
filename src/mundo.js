@@ -109,7 +109,8 @@ export class Mundo {
 
   destruir() { this.cena.remove(this.raiz); }
 
-  get totalCaixas() { return this.caixas.filter((c) => c.tipo !== 'ferro').length; }
+  // Presentes que contam: caixas de metal e caixas de som (base dos pulos) não quebram e não entram na conta.
+  get totalCaixas() { return this.caixas.filter((c) => c.tipo !== 'ferro' && c.tipo !== 'mola').length; }
 
   adicionar(obj) {
     this.raiz.add(obj);
@@ -353,12 +354,11 @@ export class Mundo {
   }
 
   acertarCaixa(c, modo) {
-    if (!c.viva || c.tipo === 'ferro') return;
+    if (!c.viva || c.tipo === 'ferro' || c.tipo === 'mola') return; // metal e caixa de som são travadas
     if (c.tipo === 'explosiva') {
       if (modo !== 'pisar') this.explodir(c);
       return;
     }
-    if (c.tipo === 'mola' && modo !== 'giro' && modo !== 'explosao') return;
     this.quebrar(c);
     if (c.tipo === 'checkpoint') {
       this.checkpoint.set(c.pos.x, c.pos.y - 0.5, c.pos.z);
