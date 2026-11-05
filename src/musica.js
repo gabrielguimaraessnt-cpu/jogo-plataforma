@@ -420,3 +420,22 @@ for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => {
   if (usandoMinhas()) { if (player.paused) tocarLista(); }
   else if (atual?.tr.arquivo && !faixaFalhou.has(atual.tr.arquivo) && faixa.paused) iniciar();
 });
+
+// Jogo em segundo plano (outra aba, app minimizado, tela do celular apagada): silencia tudo.
+// Ao voltar, a música continua de onde parou (se o som não estiver desligado).
+let pausadoPorSegundoPlano = false;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    pausadoPorSegundoPlano = true;
+    faixa.pause();
+    player.pause();
+    try { contexto().suspend(); } catch {}
+    return;
+  }
+  if (!pausadoPorSegundoPlano) return;
+  pausadoPorSegundoPlano = false;
+  if (estaMudo()) return;
+  try { contexto().resume(); } catch {}
+  if (usandoMinhas()) tocarLista();
+  else if (atual?.tr.arquivo && !faixaFalhou.has(atual.tr.arquivo)) faixa.play().catch(() => {});
+});

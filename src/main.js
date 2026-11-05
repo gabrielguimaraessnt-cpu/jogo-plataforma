@@ -746,6 +746,10 @@ function quadro(agora) {
   if (mundo) { mundo.cameraZ = camera.position.z; renderizador.render(cena, camera); }
 }
 
+// Saiu do jogo no meio de uma fase: pausa (a música já para sozinha em musica.js).
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && estado === 'jogando') { estado = 'pausa'; mostrarTela('tela-pausa'); }
+});
 addEventListener('pointerdown', () => { try { contexto(); } catch {} });
 addEventListener('keydown', () => { try { contexto(); } catch {} });
 
