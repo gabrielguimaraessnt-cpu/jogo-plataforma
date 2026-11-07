@@ -449,6 +449,19 @@ function placa(linhas, { cor = '#ffffff', fundo = VILAO.css.principal, largura =
   return g;
 }
 
+// Põe uma pessoa sentada: quadril no assento (altura em metros) e pernas esticadas para a frente.
+function sentar(pessoa, assento, z = 0) {
+  const corpo = pessoa.children[0];
+  const pernas = corpo.children.slice(0, 2);
+  for (const perna of pernas) {
+    perna.rotation.x = Math.PI / 2;
+    perna.position.y = 0.6;
+    perna.position.z = 0.24;
+  }
+  // a base do tronco fica a 0,49 de altura no boneco; desce até o assento
+  pessoa.position.set(0, assento - 0.49 * pessoa.scale.y, z);
+}
+
 function cadeiraConvidado(rnd) {
   const g = new THREE.Group();
   const branco = toon(0xffffff);
@@ -460,8 +473,8 @@ function cadeiraConvidado(rnd) {
   g.add(laco);
   if (rnd() < 0.75) {
     const p = criarPessoa(rnd, {});
-    p.position.set(0, 0.1, 0);
     p.scale.multiplyScalar(0.85);
+    sentar(p, 0.48, 0.02);
     g.add(p);
     g.userData.animar = p.userData.animar;
   }
@@ -655,8 +668,9 @@ function fileiraCadeiras(rnd) {
     g.add(c);
     if (rnd() < 0.35) {
       const p = criarPessoa(rnd);
-      p.position.set(c.position.x, 0, 0.45);
       p.scale.multiplyScalar(0.9);
+      sentar(p, 0.49, 0.02);
+      p.position.x = c.position.x;
       g.add(p);
       g.userData.animar = p.userData.animar;
     }

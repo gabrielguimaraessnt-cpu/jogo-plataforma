@@ -46,6 +46,7 @@ export const DIFICULDADES = {
   bebe: {
     id: 0, nome: 'Bebezinho', icone: '👶', descricao: 'Não perde vida: cair ou encostar em bichinho só faz voltar um pouco.',
     vidas: Infinity, semPerder: true, pudins: 2, velInimigo: 0.6, chefeVidas: 2, desaba: 1.2, pontos: 0.5,
+    moveis: { vel: 0.45, tam: 1.6 }, // plataformas do vazio: bem mais lentas e maiores
   },
   normal: {
     id: 1, nome: 'Normal', icone: '⭐', descricao: 'Do jeito que o jogo foi pensado.',
@@ -70,5 +71,7 @@ export const AJUSTES = {
   duracaoGiro: 0.45,
   recargaGiro: 0.25,
   floresPorVida: 100,
-  maxPudins: 2,           // quantos golpes o pudim protetor aguenta
+  maxPudins: 3,           // 1 e 2 pudins seguram golpes; com 3 vira o Pudim Supremo
+  supremoSegundos: 15,    // quanto tempo dura o Pudim Supremo (invencível e mais rápida)
+  supremoVelocidade: 1.4, // velocidade a mais durante o Pudim Supremo
 };

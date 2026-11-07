@@ -191,12 +191,13 @@ export class Mundo {
   montarMoveis() {
     const [lado, topo] = materiaisTema(this.tema, 'plataforma');
     const [ladoR, topoR] = materiaisDe('rachado', 'rachado');
+    const ajuste = this.dificuldade?.moveis ?? { vel: 1, tam: 1 };
     for (const dado of this.fase.moveis ?? []) {
-      const [w, h, d] = dado.tam;
+      const [w, h, d] = [dado.tam[0] * ajuste.tam, dado.tam[1], dado.tam[2] * ajuste.tam];
       const m = dado.cai ? bloco(w, h, d, ladoR, topoR) : bloco(w, h, d, lado, topo);
       this.raiz.add(m);
       const base = new THREE.Vector3(...dado.pos);
-      const movel = { malha: m, base, desloca: new THREE.Vector3(...(dado.desloca ?? [0, 0, 0])), vel: dado.vel ?? 0, fase: dado.fase ?? 0,
+      const movel = { malha: m, base, desloca: new THREE.Vector3(...(dado.desloca ?? [0, 0, 0])), vel: (dado.vel ?? 0) * ajuste.vel, fase: dado.fase ?? 0,
         tam: new THREE.Vector3(w, h, d), atual: base.clone(), delta: new THREE.Vector3(), cai: !!dado.cai, estado: 'parado', timer: 0, vy: 0 };
       movel.solido = solido([0, 0, 0], [0, 0, 0], 'movel', movel);
       this.solidos.push(movel.solido);
@@ -250,7 +251,19 @@ export class Mundo {
   }
 
   montarColetaveis() {
-    for (const original of this.fase.frutas) {
+    // Toda caixa de som ganha rosas lá no alto, para o pulão sempre ter recompensa.
+    const extras = [];
+    for (const c of this.caixas) {
+      if (c.tipo !== 'mola') continue;
+      for (const alt of [2.4, 3.8, 5.2]) {
+        const p = [c.pos.x, c.pos.y + 0.5 + alt, c.pos.z];
+        const ocupado = [...this.fase.frutas, ...extras].some((f) => Math.hypot(f[0] - p[0], f[1] - p[1], f[2] - p[2]) < 0.8)
+          || this.caixas.some((o) => o !== c && Math.abs(o.pos.x - p[0]) < 0.8 && Math.abs(o.pos.z - p[2]) < 0.8 && Math.abs(o.pos.y - p[1]) < 0.9)
+          || (this.fase.aliancas ?? []).some((a) => Math.hypot(a[0] - p[0], a[1] - p[1], a[2] - p[2]) < 1);
+        if (!ocupado) extras.push(p);
+      }
+    }
+    for (const original of [...this.fase.frutas, ...extras]) {
       const p = this.desenterrar(original);
       const malha = criarFlor(this.tema.flor);
       malha.position.set(...p);
@@ -508,6 +521,12 @@ export class Mundo {
   // Encosta em algo perigoso: decide entre derrotar o inimigo, quicar ou levar dano.
   contato(jogador, alvo, { invencivel = false, raio = 0.8, altura = 0.7 }) {
     const dx = alvo.x - jogador.pos.x, dz = alvo.z - jogador.pos.z;
+    // Pudim Supremo: encostou, derrubou (até goiaba)
+    if (jogador.supremo > 0) {
+      if (dx * dx + dz * dz > (raio + 0.4) ** 2) return null;
+      if (jogador.pos.y > alvo.y + altura + 0.3 || jogador.pos.y + 1.2 < alvo.y) return null;
+      return 'derrota';
+    }
     const r = jogador.girando && !invencivel ? raio + 0.6 : raio;
     if (dx * dx + dz * dz > r * r) return null;
     if (jogador.pos.y > alvo.y + altura || jogador.pos.y + 1 < alvo.y) return null;

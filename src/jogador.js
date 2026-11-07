@@ -45,17 +45,37 @@ export class Jogador {
   }
 
   // Pudins que acompanham a Bia (cada um aguenta um golpe).
+  // Igual às máscaras: 1 pudim = segura 1 golpe; 2 = segura 2 golpes e brilha dourado;
+  // 3 = Pudim Supremo: invencível, mais rápida e derruba tudo que encostar (por alguns segundos).
   definirPudins(n) {
     while (this.companheiros.length < n) {
       const p = criarPudim();
       p.scale.setScalar(0.7);
+      const brilho = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.035, 6, 24),
+        new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.85 }));
+      brilho.rotation.x = Math.PI / 2;
+      brilho.position.y = 0.05;
+      brilho.name = 'brilho';
+      p.add(brilho);
       this.cena.add(p);
       this.companheiros.push(p);
     }
     while (this.companheiros.length > n) this.cena.remove(this.companheiros.pop());
+    for (const p of this.companheiros) p.getObjectByName('brilho').visible = n >= 2;
+  }
+
+  ativarSupremo() {
+    this.supremo = AJUSTES.supremoSegundos;
+    if (!this.aura) {
+      this.aura = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14),
+        new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.18, depthWrite: false, blending: THREE.AdditiveBlending }));
+      this.luzAura = new THREE.PointLight(0xffc94d, 18, 6);
+      this.cena.add(this.aura, this.luzAura);
+    }
   }
 
   remover() {
+    if (this.aura) this.cena.remove(this.aura, this.luzAura);
     this.cena.remove(this.modelo, this.sombra);
     this.definirPudins(0);
   }
@@ -98,6 +118,7 @@ export class Jogador {
   passo(dt, entrada, mundo) {
     this.tempo += dt;
     if (this.invencivel > 0) this.invencivel -= dt;
+    if (this.supremo > 0) this.supremo -= dt;
     if (this.morto) {
       this.tempoMorto += dt;
       this.vel.y -= AJUSTES.gravidade * dt;
@@ -112,7 +133,8 @@ export class Jogador {
 
     // Andar
     // Responde na hora: acelera rápido e, ao soltar ou virar para o outro lado, freia ainda mais rápido.
-    const alvoX = entrada.x * AJUSTES.velocidade, alvoZ = entrada.z * AJUSTES.velocidade;
+    const vel = AJUSTES.velocidade * (this.supremo > 0 ? AJUSTES.supremoVelocidade : 1);
+    const alvoX = entrada.x * vel, alvoZ = entrada.z * vel;
     const gelo = this.noChao && this.chaoAtual?.gelo;
     const fator = gelo ? 0.18 : this.noChao ? 1 : AJUSTES.atritoNoAr;
     const passoEixo = (atual, alvo) => {
@@ -207,12 +229,26 @@ export class Jogador {
     if (this.mixer) this.animarExterno(dt, estado);
     else animarBia(this.visual, estado, this.tempo, dt);
     this.modelo.visible = this.morto || this.invencivel <= 0 || Math.floor(this.invencivel * 12) % 2 === 0;
+    const supremo = this.supremo > 0;
+    const n = this.companheiros.length;
     this.companheiros.forEach((p, i) => {
-      const a = this.tempo * 2.5 + i * Math.PI;
-      const alvo = new THREE.Vector3(this.pos.x + Math.cos(a) * 0.9, this.pos.y + 1.5 + Math.sin(this.tempo * 3 + i) * 0.15, this.pos.z + Math.sin(a) * 0.9);
-      p.position.lerp(alvo, Math.min(dt * 8, 1));
+      // no Supremo os pudins giram rápido e bem juntinhos da Bia
+      const a = this.tempo * (supremo ? 7 : 2.5) + i * (Math.PI * 2 / Math.max(n, 1));
+      const r = supremo ? 0.75 : 0.9;
+      const alvo = new THREE.Vector3(this.pos.x + Math.cos(a) * r, this.pos.y + (supremo ? 1.0 : 1.5) + Math.sin(this.tempo * 3 + i) * 0.15, this.pos.z + Math.sin(a) * r);
+      p.position.lerp(alvo, Math.min(dt * 10, 1));
       p.rotation.y = -a;
+      p.scale.setScalar(supremo ? 0.85 + Math.sin(this.tempo * 12) * 0.08 : 0.7);
     });
+    if (this.aura) {
+      this.aura.visible = this.luzAura.visible = supremo && !this.morto;
+      // pisca nos últimos 3 segundos para avisar que vai acabar
+      const acabando = this.supremo < 3 && Math.floor(this.supremo * 6) % 2 === 0;
+      this.aura.position.set(this.pos.x, this.pos.y + 0.75, this.pos.z);
+      this.aura.scale.setScalar(1.05 + Math.sin(this.tempo * 10) * 0.07);
+      this.aura.material.opacity = acabando ? 0.05 : 0.18;
+      this.luzAura.position.copy(this.aura.position);
+    }
 
     const chao = mundo.alturaChao(this.pos.x, this.pos.y, this.pos.z);
     this.sombra.position.set(this.pos.x, chao + 0.02, this.pos.z);

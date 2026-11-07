@@ -150,7 +150,7 @@ function perderVida() {
     aviso('Opa! De volta ao pinheirinho', 1.2);
     return;
   }
-  if (jogador.morrer()) { quedas++; pudins = 0; jogador.definirPudins(0); }
+  if (jogador.morrer()) { quedas++; pudins = 0; jogador.supremo = 0; jogador.definirPudins(0); }
 }
 
 // "+100" subindo da caixa, na posição dela na tela.
@@ -188,7 +188,7 @@ const eventos = {
   },
   aviso,
   dano() {
-    if (jogador.morto || jogador.invencivel > 0) return;
+    if (jogador.morto || jogador.invencivel > 0 || jogador.supremo > 0) return;
     if (pudins > 0) {
       pudins--;
       jogador.definirPudins(pudins);
@@ -211,7 +211,15 @@ const eventos = {
   pudim() {
     pontos += PONTOS.pudim;
     som.vida();
-    if (pudins < AJUSTES.maxPudins) { pudins++; jogador.definirPudins(pudins); aviso('Pudim protetor!', 1.2); } else eventos.flores(10);
+    if (pudins < AJUSTES.maxPudins) {
+      pudins++;
+      jogador.definirPudins(pudins);
+      if (pudins === 3) {
+        jogador.ativarSupremo();
+        som.vitoria();
+        aviso('✨ PUDIM SUPREMO! ✨', 2);
+      } else aviso(pudins === 2 ? 'Pudim duplo! Brilho dourado' : 'Pudim protetor!', 1.2);
+    } else eventos.flores(10);
   },
   alianca() {
     pegouAlianca = true;
@@ -643,7 +651,7 @@ function atualizarHud() {
   $('hud-pontos').textContent = pontos.toLocaleString('pt-BR');
   $('hud-flores').textContent = flores;
   $('hud-vidas').textContent = Number.isFinite(vidas) ? vidas : '∞';
-  $('hud-pudins').textContent = pudins;
+  $('hud-pudins').textContent = jogador.supremo > 0 ? `${pudins} ✨${Math.ceil(jogador.supremo)}s` : pudins;
   $('hud-caixas').textContent = `${mundo.quebradas}/${mundo.totalCaixas}`;
   $('hud-tempo').textContent = formatarTempo(tempoMs);
 }
@@ -682,6 +690,12 @@ function quadro(agora) {
       acumulado -= PASSO;
       passos++;
       if (estado !== 'jogando') break;
+    }
+    // Pudim Supremo acabou: volta para 2 pudins (igual às máscaras)
+    if (estado === 'jogando' && pudins === 3 && !(jogador.supremo > 0)) {
+      pudins = 2;
+      jogador.definirPudins(2);
+      aviso('O Pudim Supremo acabou', 1.2);
     }
     if (estado === 'jogando' && jogador.morto && jogador.tempoMorto > 1.4) {
       vidas--;
