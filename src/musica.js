@@ -1,6 +1,13 @@
 // Trilhas originais sintetizadas na hora, uma por mundo. Nada de arquivo de áudio.
 // Cada trilha: andamento (bpm), escala, sequência de acordes e um "jeito" de tocar.
 import { contexto, estaMudo, quandoMudarSom } from './som.js';
+
+// A música pode ser desligada sozinha (os efeitos continuam). Fica salvo no aparelho.
+let musicaDesligada = false;
+try { musicaDesligada = localStorage.getItem('bia-musica-desligada') === '1'; } catch {}
+const calada = () => estaMudo() || musicaDesligada;
+export function musicaLigada() { return !musicaDesligada; }
+
 import { aleatorio } from './estilo3d.js';
 
 const MAIOR = [0, 2, 4, 5, 7, 9, 11];
@@ -259,11 +266,11 @@ function agendarPasso(c, tr, comp, passo, t) {
 
 export function tocarMusica(nome) {
   if (usandoMinhas()) { pararMusica(); atual = { nome, tr: TRILHAS[nome] ?? TRILHAS.menu, passo: 0, proximo: 0 }; atual.comp = compor(atual.tr); tocarLista(); return; }
-  if (atual?.nome === nome) { if (!relogio && !estaMudo()) iniciar(); return; }
+  if (atual?.nome === nome) { if (!relogio && !calada()) iniciar(); return; }
   pararMusica();
   const tr = TRILHAS[nome] ?? TRILHAS.menu;
   atual = { nome, tr, comp: compor(tr), passo: 0, proximo: 0 };
-  if (estaMudo()) return;
+  if (calada()) return;
   iniciar();
 }
 
@@ -283,7 +290,7 @@ faixa.addEventListener('error', () => {
 function iniciar() {
   if (!atual || relogio || usandoMinhas()) return;
   if (atual.tr.arquivo && !faixaFalhou.has(atual.tr.arquivo)) {
-    faixa.muted = estaMudo();
+    faixa.muted = calada();
     if (!faixa.src.endsWith(atual.tr.arquivo)) faixa.src = atual.tr.arquivo;
     faixa.play().catch(() => {});
     return;
@@ -313,11 +320,19 @@ export function pararMusica() {
   mestre = null;
 }
 
-quandoMudarSom((mudo) => {
-  player.muted = mudo;
-  faixa.muted = mudo;
-  if (mudo) pararMusica(); else if (usandoMinhas()) tocarLista(); else iniciar();
-});
+function aplicarSilencio() {
+  player.muted = calada();
+  faixa.muted = calada();
+  if (calada()) { pararMusica(); player.pause(); } else if (usandoMinhas()) tocarLista(); else iniciar();
+}
+quandoMudarSom(aplicarSilencio);
+
+export function alternarMusica() {
+  musicaDesligada = !musicaDesligada;
+  try { localStorage.setItem('bia-musica-desligada', musicaDesligada ? '1' : '0'); } catch {}
+  aplicarSilencio();
+  return !musicaDesligada;
+}
 
 // ---------- Minhas músicas ----------
 // A Bia escolhe arquivos de música do próprio aparelho. Eles ficam guardados só no navegador dela
@@ -325,7 +340,7 @@ quandoMudarSom((mudo) => {
 
 const player = new Audio();
 player.volume = 0.7;
-player.muted = estaMudo();
+player.muted = calada();
 let lista = [];
 let posicao = 0;
 let modo = 'jogo';
@@ -400,7 +415,7 @@ export function escolherModoMusica(novo) {
 }
 
 function tocarLista() {
-  if (!usandoMinhas() || estaMudo()) return;
+  if (!usandoMinhas() || calada()) return;
   if (!player.src || player.ended || player.src !== lista[posicao].url) player.src = lista[posicao].url;
   player.play().catch(() => {});
   avisar();
@@ -416,7 +431,7 @@ export function proximaMusica() {
 player.addEventListener('ended', proximaMusica);
 // O navegador só deixa tocar depois de um toque/tecla: tenta de novo no primeiro gesto.
 for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => {
-  if (estaMudo()) return;
+  if (calada()) return;
   if (usandoMinhas()) { if (player.paused) tocarLista(); }
   else if (atual?.tr.arquivo && !faixaFalhou.has(atual.tr.arquivo) && faixa.paused) iniciar();
 });
@@ -434,7 +449,7 @@ document.addEventListener('visibilitychange', () => {
   }
   if (!pausadoPorSegundoPlano) return;
   pausadoPorSegundoPlano = false;
-  if (estaMudo()) return;
+  if (calada()) return;
   try { contexto().resume(); } catch {}
   if (usandoMinhas()) tocarLista();
   else if (atual?.tr.arquivo && !faixaFalhou.has(atual.tr.arquivo)) faixa.play().catch(() => {});

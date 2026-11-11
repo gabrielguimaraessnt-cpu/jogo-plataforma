@@ -6,7 +6,7 @@ import { TEMAS } from './temas.js';
 import { ROUPAS } from './modelos/bia.js';
 import { lerEntrada, iniciarToque, ACOES, teclasAtuais, definirTecla, restaurarTeclas, nomeTecla, capturarTecla } from './entrada.js';
 import { som, alternarSom, contexto } from './som.js';
-import { tocarMusica, carregarMinhasMusicas, adicionarMinhasMusicas, apagarMinhasMusicas, escolherModoMusica, proximaMusica, estadoMinhasMusicas, aoMudarMinhasMusicas } from './musica.js';
+import { tocarMusica, alternarMusica, musicaLigada, carregarMinhasMusicas, adicionarMinhasMusicas, apagarMinhasMusicas, escolherModoMusica, proximaMusica, estadoMinhasMusicas, aoMudarMinhasMusicas } from './musica.js';
 import { AJUSTES, HISTORIA, TODAS_LIBERADAS, PONTOS, DIFICULDADES } from './config.js';
 import { FASES, MUNDOS } from './fases/index.js';
 import { enviarRecorde, mostrarRecordes, formatarTempo } from './placar.js';
@@ -39,7 +39,7 @@ function redimensionar() {
   document.body.style.setProperty('--larg', innerWidth + 'px');
   document.body.style.setProperty('--alt', innerHeight + 'px');
   const w = girar ? innerHeight : innerWidth, h = girar ? innerWidth : innerHeight;
-  document.body.classList.toggle('tela-baixa', h < 520);
+  document.body.classList.toggle('tela-baixa', h < 640);
   renderizador.setSize(w, h);
   camera.aspect = w / h;
   camera.fov = camera.aspect < 0.8 ? 75 : 60;
@@ -449,6 +449,18 @@ document.addEventListener('click', (e) => {
   escolherModoMusica(b.dataset.modoMusica);
 });
 
+// ---------- Música ligada/desligada ----------
+
+function atualizarBotoesMusica() {
+  const ligada = musicaLigada();
+  for (const b of document.querySelectorAll('[data-acao="musica-liga"]')) {
+    if (b.classList.contains('hud-musica')) b.textContent = ligada ? '🎵' : '🔇';
+    else if (b.closest('#tela-menu')) b.textContent = ligada ? '🎵 Ligada' : '🔇 Desligada';
+    else b.textContent = ligada ? '🎵 Música: ligada' : '🔇 Música: desligada';
+    b.setAttribute('aria-pressed', String(!ligada));
+  }
+}
+
 // ---------- Dificuldade ----------
 
 function mostrarDificuldade() {
@@ -549,6 +561,7 @@ document.addEventListener('click', (e) => {
     case 'voltar': if (estado === 'roupas') estado = 'menu'; mostrarTela(telaAnterior); break;
     case 'continuar': estado = 'jogando'; mostrarTela(null); break;
     case 'tela-cheia': alternarTelaCheia(); break;
+    case 'musica-liga': alternarMusica(); atualizarBotoesMusica(); aviso(musicaLigada() ? 'Música ligada' : 'Música desligada', 1); break;
     case 'reiniciar': comecar(indiceFase); break;
     case 'proxima': comecar(Math.min(indiceFase + 1, FASES.length - 1)); break;
     case 'creditos': irParaMenu('tela-mapa'); break;
@@ -777,6 +790,7 @@ montarFase(0);
 estado = 'menu';
 mostrarJogadorAtual();
 mostrarDificuldade();
+atualizarBotoesMusica();
 if (nomeValido(nomeSalvo())) mostrarTela('tela-menu'); else pedirNome();
 tocarMusica('menu');
 requestAnimationFrame(quadro);

@@ -279,3 +279,15 @@ body.tela-baixa .passos { font-size: 14px; line-height: 1.3; }
 .ponto-voando.combo { color: #ff8fab; font-size: 26px; }
 @keyframes subir { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -60px; } }
 .resumo .total { font-size: 1.15em; color: var(--destaque); border-top: 2px solid var(--borda); padding-top: 2px; }
+
+/* Botão de música (menu, pausa e placar da fase) */
+.linha-botoes { display: flex; gap: 8px; }
+.linha-botoes > button:first-child { flex: 1; }
+.linha-botoes .botao-musica { flex: 0 0 auto; }
+body.tela-baixa .linha-botoes { gap: 6px; }
+#hud .hud-musica {
+  pointer-events: auto; cursor: pointer; font: inherit; font-size: inherit; color: inherit;
+  border: none; padding: 2px 12px; margin-left: auto;
+}
+#hud .hud-musica + .hud-tempo { margin-left: 0; }
+#hud .hud-musica:focus-visible { outline: 3px solid var(--destaque-claro); }

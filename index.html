@@ -32,6 +32,7 @@
     <div class="hud-item">🎁 <b id="hud-caixas">0/0</b></div>
     <div class="hud-item">⭐ <b id="hud-pontos">0</b></div>
     <div class="hud-item oculto" id="hud-alianca">💍</div>
+    <button class="hud-item hud-musica" data-acao="musica-liga" title="Ligar/desligar a música">🎵</button>
     <div class="hud-item hud-tempo">⏱ <b id="hud-tempo">0:00.0</b></div>
   </div>
   <div id="chefe-barra" class="oculto"><span id="chefe-nome">Gerente</span><div id="chefe-vidas"></div></div>
@@ -64,7 +65,10 @@
       <div class="coluna">
         <button data-acao="mapa" class="principal">Jogar</button>
         <button data-acao="roupas">Guarda-roupa</button>
-        <button data-acao="musicas">Músicas</button>
+        <div class="linha-botoes">
+          <button data-acao="musicas">Músicas</button>
+          <button data-acao="musica-liga" class="botao-musica">🎵 Ligada</button>
+        </div>
         <button data-acao="recordes">Recordes online</button>
         <button data-acao="dificuldade" id="botao-dificuldade">Dificuldade: ⭐ Normal</button>
         <button data-acao="controles">Controles</button>
@@ -164,6 +168,7 @@
       <button data-acao="reiniciar">Reiniciar fase</button>
       <button data-acao="mapa">Mapa de fases</button>
       <button data-acao="menu-inicial">Menu inicial</button>
+      <button data-acao="musica-liga" class="botao-musica">🎵 Música: ligada</button>
       <button data-acao="tela-cheia" class="botao-tela-cheia-pausa oculto">Tela cheia</button>
     </div>
   </div>
