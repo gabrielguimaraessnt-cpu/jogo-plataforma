@@ -201,11 +201,11 @@ export function criarGabi() {
     toon(0xffffff, { map: texturaTexto(['Esse vestido', 'é meu! 😤'], { largura: 512, altura: 224, fundo: '#fff4e6', cor: '#c9184a', borda: '#e0457b', fonte: 'bold 78px "Baloo 2", "Trebuchet MS", sans-serif' }) }), 0, 0.62, 0);
   placa.add(quadro);
   placa.add(malha(new THREE.CylinderGeometry(0.02, 0.02, 0.42, 6), toon(0x9c6b3f), 0, 0.2, -0.03));
-  placa.scale.setScalar(0.001);
   placa.visible = false;
   corpo.add(placa);
 
   contornar(raiz, 0.012);
+  placa.scale.setScalar(0.001); // só depois do contorno (o contorno usa a escala da peça)
   const fase = Math.random() * 6;
   let raiva = 0, antes = null;
   const dados = {
