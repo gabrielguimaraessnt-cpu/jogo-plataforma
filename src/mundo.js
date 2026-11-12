@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { TEMAS, bloco, materiaisTema, materiaisDe, placaFase } from './temas.js';
 import { criarCaixa, criarFlor, criarAlianca, criarPudim, criarChegada, criarPinheiro } from './modelos/itens.js';
 import { criarNoivo } from './modelos/noivo.js';
+import { criarGabi } from './modelos/gabi.js';
 import { criarMaquininha, animarMaquininha, criarCarretel, criarGoiaba, criarGoiabeira, criarFumaca, criarGnomo, animarGnomo, criarDJ, animarDJ, criarNotaProjetil, criarReiGnomo, criarBolaNeve } from './modelos/inimigos.js';
 import { toon, aleatorio } from './estilo3d.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -104,6 +105,20 @@ export class Mundo {
       malha.receiveShadow = true;
       malha.frustumCulled = false;
       this.raiz.add(malha);
+    }
+  }
+
+  // A Gabi empresta os vestidos florido e azul: com eles, ela aparece na lateral e reclama quando a Bia chega perto.
+  montarGabi(roupa) {
+    for (const g of this.gabis ?? []) { this.raiz.remove(g); this.animados.splice(this.animados.indexOf(g), 1); }
+    this.gabis = [];
+    if (!['florido', 'azul'].includes(roupa)) return;
+    for (const pos of this.fase.gabis ?? []) {
+      const g = criarGabi();
+      g.position.set(...pos);
+      g.rotation.y = pos[0] > 0 ? -0.55 : 0.55;
+      this.adicionar(g);
+      this.gabis.push(g);
     }
   }
 
@@ -549,6 +564,9 @@ export class Mundo {
       }
     }
 
+    for (const g of this.gabis ?? []) {
+      g.userData.brava = !jogador.morto && Math.hypot(jogador.pos.x - g.position.x, jogador.pos.z - g.position.z) < 4.5;
+    }
     for (const o of this.animados) o.userData.animar(t);
 
     // Caixas: pavio, queda e mola

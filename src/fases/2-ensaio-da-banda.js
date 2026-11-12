@@ -11,7 +11,8 @@ f.reto(24)
   .caixa('comum', -2, 7).caixa('comum', 2, 7)
   .goiaba(2.5, 17, { pulo: 1.4 })
   .pudim(-2.5, 20)
-  .caixa('tesouro', -3.5, 11);
+  .caixa('tesouro', -3.5, 11)
+  .gabi(3.5, 10);
 f.moveis(3, { eixo: 'y', amp: 2, vel: 0.45, alternar: false });
 f.subir(1.5).reto(16)
   .caixa('checkpoint', 0, 3)

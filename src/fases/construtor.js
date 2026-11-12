@@ -11,7 +11,7 @@
 
 export class Fase {
   constructor(meta) {
-    this.d = { ...meta, plataformas: [], moveis: [], caixas: [], frutas: [], inimigos: [], goiabeiras: [], pudins: [], aliancas: [], placas: [], esteiras: [], inicio: [0, 0, 2] };
+    this.d = { ...meta, plataformas: [], moveis: [], caixas: [], frutas: [], inimigos: [], goiabeiras: [], pudins: [], aliancas: [], placas: [], gabis: [], esteiras: [], inicio: [0, 0, 2] };
     this.z = 6;
     this.y = 0;
     this.ini = 6;
@@ -212,6 +212,9 @@ export class Fase {
     this.d.chegada = this.p(0, dz ?? (this.ini - this.z - 4));
     return this;
   }
+
+  // Easter egg: a Gabi (irmã da Bia) na lateral; só aparece quando a Bia usa um vestido dela
+  gabi(x, dz) { this.d.gabis.push(this.p(x, dz)); return this; }
 
   pronto() { return this.d; }
 }

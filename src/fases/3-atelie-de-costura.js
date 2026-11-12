@@ -19,7 +19,8 @@ f.reto(18)
   .placa(3.4, 4, ['Esse chão é de botão:', 'não fica parada!'], '🔘')
   .pilha('comum', 0, 8, 2)
   .inimigo('maquininha', -3, 3, 12, 3)
-  .caixa('explosiva', 2.5, 15).caixa('comum', -2.5, 15);
+  .caixa('explosiva', 2.5, 15).caixa('comum', -2.5, 15)
+  .gabi(-3.5, 7);
 f.ponte(18, { largura: 2.2 });
 f.reto(20)
   .caixa('checkpoint', 0, 3)

@@ -12,7 +12,8 @@ f.reto(28)
   .placa(3.4, 14, ['Pula em cima', 'ou gira pra abrir!'], '🎁')
   .inimigo('maquininha', -3, 3, 22, 2)
   .pudim(2.5, 25)
-  .caixa('tesouro', -3.5, 11);
+  .caixa('tesouro', -3.5, 11)
+  .gabi(3.5, 19);
 f.buraco(4);
 f.reto(20)
   .caixa('checkpoint', 0, 3)

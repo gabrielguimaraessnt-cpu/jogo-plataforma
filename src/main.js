@@ -267,6 +267,7 @@ function criarJogador() {
   const pos = jogador ? jogador.pos.clone() : null;
   jogador?.remover();
   jogador = new Jogador(cena, { roupa: progresso.roupa, externo: externos.bia ?? null });
+  mundo?.montarGabi(progresso.roupa);
   jogador.reposicionar(pos ?? new THREE.Vector3(...FASES[indiceFase].inicio));
 }
 
